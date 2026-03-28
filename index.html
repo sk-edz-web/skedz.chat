@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>sk secure chat - free online pvt chat</title>
+    <link rel="icon" type="image/x-icon" href="/chat.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    
+    <meta name="title" content="sk secure Chat - Premium Secure Workspace">
+    <meta name="description" content="Join ProChat to connect with your teams and communities. A highly secure, real-time, and modern private chat platform.">
+    <meta name="keywords" content="skedzChat, secure chat, private messaging, real-time chat, web app">
+    <meta name="author" content="Sk creations">
+    <meta name="theme-color" content="#000000">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="sk secure Chat - Premium Secure Workspace">
+    <meta property="og:description" content="Join ProChat to connect with your teams and communities. A highly secure, real-time, and modern private chat platform.">
+
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:title" content="sk secure Chat - Premium Secure Workspace">
+    <meta property="twitter:description" content="Join ProChat to connect with your teams and communities. A highly secure, real-time, and modern private chat platform.">
+    
+    
+    <style>
+        :root {
+            --primary: #000000;       
+            --primary-hover: #333333; 
+            --accent: #3b82f6;        
+            --accent-hover: #2563eb;  
+            --bg-body: #f3f4f6;       
+            --bg-surface: #ffffff;
+            --bg-hover: #f9fafb;      
+            --text-main: #111827;     
+            --text-muted: #6b7280;    
+            --border-color: #e5e7eb;  
+            --danger: #ef4444;        
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: all 0.25s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* FIX: Changed 100vh to 100dvh to fix Mobile Keyboard overlay issues */
+        body { background-color: var(--bg-body); color: var(--text-main); height: 100dvh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        h1, h2, h3, h4 { font-weight: 700; color: var(--text-main); letter-spacing: -0.02em; }
+        p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; }
+        .hidden { display: none !important; }
+        
+        .input-group { margin-bottom: 1rem; text-align: left;}
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main); }
+        input, select { width: 100%; padding: 0.85rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-surface); color: var(--text-main); font-size: 0.95rem; outline: none; transition: var(--transition); }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+
+        .btn { display: inline-flex; justify-content: center; align-items: center; width: 100%; padding: 0.85rem 1.5rem; background-color: var(--primary); color: white; font-weight: 600; font-size: 0.95rem; border: none; border-radius: var(--radius-md); cursor: pointer; transition: var(--transition); gap: 0.5rem; }
+        .btn:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn:active:not(:disabled) { transform: translateY(0); }
+        .btn:disabled { background-color: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+        .btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-danger { background-color: var(--danger); color: white; }
+
+        .icon-btn { background: transparent; border: none; padding: 0.6rem; border-radius: 50%; cursor: pointer; color: var(--text-muted); transition: var(--transition); display: flex; align-items: center; justify-content: center; }
+        .icon-btn:hover { background-color: var(--bg-body); color: var(--text-main); }
+        .icon-btn svg { width: 22px; height: 22px; fill: currentColor; pointer-events: none; } 
+
+        #auth-screen { position: fixed; inset: 0; z-index: 1000; background-color: var(--bg-body); display: flex; justify-content: center; align-items: center; padding: 1rem; height: 100dvh; }
+        .auth-card { background: var(--bg-surface); width: 100%; max-width: 400px; padding: 2.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; }
+
+        #top-navbar { height: 70px; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; flex-shrink: 0; z-index: 50; }
+        .nav-brand { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-size: 1.25rem; }
+        .top-nav-links { display: flex; gap: 1rem; }
+        .top-nav-item { padding: 0.6rem 1.2rem; border-radius: 20px; color: var(--text-muted); font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+        .top-nav-item:hover { background: var(--bg-hover); color: var(--text-main); }
+        .top-nav-item.active { background: var(--text-main); color: white; }
+
+        #mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-surface); border-top: 1px solid var(--border-color); z-index: 90; padding: 0.5rem; padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
+        .mobile-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.6rem; color: var(--text-muted); cursor: pointer; transition: var(--transition); }
+        .mobile-nav-item svg { width: 24px; height: 24px; fill: currentColor; margin-bottom: 4px; pointer-events: none; }
+        .mobile-nav-item span { font-size: 0.7rem; font-weight: 600; pointer-events: none; }
+        .mobile-nav-item.active { color: var(--accent); }
+
+        #main-content { flex: 1; position: relative; overflow: hidden; max-width: 1000px; margin: 0 auto; width: 100%; }
+        .view-section { position: absolute; inset: 0; padding: 2rem; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; }
+        .view-section.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+        .tap-action-btn { background: var(--bg-surface); border: 1px solid var(--border-color); width: 100%; padding: 1.25rem; border-radius: var(--radius-lg); display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 600; color: var(--text-main); cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); margin-bottom: 1rem; }
+        .tap-action-btn:hover { border-color: var(--primary); transform: translateY(-1px);}
+        .tap-action-btn svg { width: 24px; height: 24px; fill: currentColor; transition: transform 0.3s; pointer-events: none; }
+        .tap-action-btn.active svg { transform: rotate(180deg); }
+
+        .collapsible-form { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; display: none; animation: slideDown 0.3s ease forwards; }
+        .collapsible-form.active { display: block; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .item-list { display: flex; flex-direction: column; gap: 0.8rem; }
+        .list-item { display: flex; align-items: center; padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); cursor: pointer; transition: var(--transition); }
+        .list-item:hover { border-color: var(--accent); transform: scale(1.01); box-shadow: var(--shadow-md); }
+        .avatar { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; background: #e5e7eb; flex-shrink: 0; margin-right: 1rem;}
+        .list-item-content { flex: 1; overflow: hidden; }
+        .list-item-title { font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem; font-size: 1.05rem; }
+
+        /* --- Chat UI --- */
+        #chat-interface { position: fixed; inset: 0; z-index: 200; background: var(--bg-body); display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.3s ease; height: 100dvh;}
+        #chat-interface.active { transform: translateY(0); }
+
+        .chat-header { height: 70px; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); box-shadow: var(--shadow-sm); z-index: 10; flex-shrink: 0; }
+        .chat-body { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; position: relative;}
+
+        .copyable-id { font-size: 0.75rem; color: var(--accent); font-weight: 600; cursor: pointer; padding: 2px 6px; background: rgba(59,130,246,0.1); border-radius: 4px; transition: 0.2s; display: inline-block;}
+        .copyable-id:hover { background: rgba(59,130,246,0.2); }
+
+        .message-wrapper { display: flex; flex-direction: column; max-width: 85%; }
+        .message-wrapper.me { align-self: flex-end; align-items: flex-end; }
+        .message-wrapper.other { align-self: flex-start; align-items: flex-start; }
+        .sender-name { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.25rem; margin-left: 0.5rem; }
+        .message-bubble { padding: 0.8rem 1rem; border-radius: 1.25rem; font-size: 0.95rem; line-height: 1.4; box-shadow: var(--shadow-sm); word-wrap: break-word; font-weight: 500; }
+        .message-wrapper.me .message-bubble { background-color: var(--primary); color: white; border-bottom-right-radius: 0.3rem; }
+        .message-wrapper.other .message-bubble { background-color: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); border-bottom-left-radius: 0.3rem; }
+        .message-time { font-size: 0.65rem; margin-top: 0.3rem; color: var(--text-muted); font-weight: 600; }
+
+        .typing-indicator { align-self: flex-start; background: transparent; padding: 0 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .typing-dots { display: flex; gap: 4px; background: var(--bg-surface); padding: 8px 12px; border-radius: 15px; border: 1px solid var(--border-color);}
+        .dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        .typing-text { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        .chat-footer { padding: 1rem 1.5rem; background: var(--bg-surface); border-top: 1px solid var(--border-color); display: flex; gap: 0.75rem; align-items: center; flex-shrink: 0; padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+        .chat-input { flex: 1; padding: 0.9rem 1.25rem; border-radius: 2rem; background: var(--bg-body); border: 1px solid transparent; font-weight: 500; outline: none; }
+        .chat-input:focus { background: var(--bg-surface); border-color: var(--accent); }
+        
+        .send-btn { width: 50px; height: 50px; border-radius: 50%; background: var(--accent); color: white; display: flex; justify-content: center; align-items: center; border: none; cursor: pointer; transition: var(--transition); flex-shrink: 0; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        .send-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+        .send-btn:active { transform: scale(0.95); }
+        .send-btn svg { width: 22px; height: 22px; fill: currentColor; margin-left: 3px; pointer-events: none; } 
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 300; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; padding: 1rem; }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-container { background: var(--bg-surface); width: 100%; max-width: 400px; max-height: 90vh; border-radius: var(--radius-lg); padding: 1.5rem; transform: scale(0.95); transition: transform 0.2s; }
+        .modal-overlay.active .modal-container { transform: scale(1); }
+
+        @media (max-width: 768px) {
+            #top-navbar { display: none !important; }
+            #mobile-bottom-nav { display: flex !important; }
+            #main-content { margin-bottom: 70px; } 
+            .view-section { padding: 1.5rem 1rem; }
+            .chat-header { padding: 0 1rem; }
+            .chat-body { padding: 1rem; }
+            .chat-footer { padding: 0.75rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen">
+        <form id="auth-form" class="auth-card">
+            <h2 style="margin-bottom: 0.5rem; font-size: 1.8rem;">ProChat</h2>
+            <p style="margin-bottom: 2rem;">Secure communication platform.</p>
+            <div class="input-group"><label>Email Address</label><input type="email" id="auth-email" placeholder="name@example.com" required></div>
+            <div class="input-group"><label>Password</label><input type="password" id="auth-pass" placeholder="••••••••" required></div>
+            <button type="submit" class="btn" id="btn-login" style="margin-bottom: 1rem;">Sign In</button>
+            <button type="button" class="btn btn-outline" id="btn-signup">Create Account</button>
+        </form>
+    </div>
+
+    <nav id="top-navbar" class="hidden">
+        <div class="nav-brand">
+            <svg viewBox="0 0 24 24" style="width:28px; fill:var(--primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg> ProChat
+        </div>
+        <div class="top-nav-links">
+            <div class="top-nav-item active" onclick="switchTab('home', this)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> Home</div>
+            <div class="top-nav-item" onclick="switchTab('chats', this)"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg> Chats</div>
+            <div class="top-nav-item" onclick="switchTab('profile', this)"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> Profile</div>
+        </div>
+    </nav>
+
+    <main id="main-content" class="hidden">
+        <div id="view-home" class="view-section active">
+            <div class="page-header">
+                <h1>Workspace</h1>
+                <p>Connect with teams or start a new community.</p>
+            </div>
+
+            <button class="tap-action-btn" onclick="toggleAccordion('join-room-container', this)">
+                <div style="display:flex; align-items:center; gap:10px;"><span style="font-size: 1.5rem;">🤝</span> Join a Workspace</div>
+                <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+            </button>
+            <div id="join-room-container" class="collapsible-form">
+                <div class="input-group"><label>Room ID</label><input type="text" id="join-room-id" placeholder="Paste the Room ID" oninput="validateForm('join')"></div>
+                <div class="input-group"><label>Security Password</label><input type="password" id="join-room-pass" placeholder="Only if private"></div>
+                <button id="btn-join" class="btn" style="background:var(--accent);" onclick="joinRoom()" disabled>Enter Room</button>
+            </div>
+
+            <button class="tap-action-btn" onclick="toggleAccordion('create-room-container', this)">
+                <div style="display:flex; align-items:center; gap:10px;"><span style="font-size: 1.5rem;">✨</span> Create New Workspace</div>
+                <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+            </button>
+            <div id="create-room-container" class="collapsible-form">
+                <div class="input-group"><label>Workspace Name</label><input type="text" id="new-room-name" placeholder="e.g. Design Team" oninput="validateForm('create')"></div>
+                <div class="input-group"><label>Icon (Image URL)</label><input type="text" id="new-room-icon" placeholder="https://example.com/logo.png"></div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="input-group" style="flex: 1;"><label>Visibility</label><select id="new-room-type"><option value="public">Public</option><option value="private">Private</option></select></div>
+                    <div class="input-group" style="width: 100px;"><label>Limit</label><input type="number" id="new-room-limit" value="50"></div>
+                </div>
+                <div class="input-group"><label>Password (Optional)</label><input type="password" id="new-room-pass" placeholder="Set password for security"></div>
+                <button id="btn-create" class="btn" onclick="createRoom()" disabled>Create & Open</button>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 1rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Public Communities</h3>
+                <div id="public-rooms-list" class="item-list"><p class="text-center" style="font-size: 0.9rem;">Loading communities...</p></div>
+            </div>
+        </div>
+
+        <div id="view-chats" class="view-section">
+            <div class="page-header"><h1>Active Chats</h1><p>Rooms you are currently part of.</p></div>
+            <div id="my-chats-list" class="item-list"></div>
+        </div>
+
+        <div id="view-profile" class="view-section">
+            <div class="page-header"><h1>My Profile</h1><p>Manage your identity.</p></div>
+            <div style="background: var(--bg-surface); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); max-width: 500px; margin: 0 auto; text-align: center;">
+                <img id="profile-preview" src="https://via.placeholder.com/100" class="avatar" style="width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 1.5rem;">
+                <div class="input-group"><label>Display Name</label><input type="text" id="profile-name"></div>
+                <div class="input-group"><label>Profile Image URL</label><input type="text" id="profile-img-url" oninput="document.getElementById('profile-preview').src = this.value"></div>
+                <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+                    <button class="btn" onclick="saveProfile()">Save Changes</button>
+                    <button class="btn btn-danger" onclick="logout()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <nav id="mobile-bottom-nav" class="hidden">
+        <div class="mobile-nav-item active" onclick="switchTab('home', this, true)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></div>
+        <div class="mobile-nav-item" onclick="switchTab('chats', this, true)"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg><span>Chats</span></div>
+        <div class="mobile-nav-item" onclick="switchTab('profile', this, true)"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Profile</span></div>
+    </nav>
+
+    <div id="chat-interface">
+        <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <button class="icon-btn" onclick="closeChatScreen()" style="margin-left: -0.5rem; background: var(--bg-hover);"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+                <img id="chat-header-img" src="" class="avatar" style="width: 40px; height: 40px; margin:0;">
+                <div>
+                    <h3 id="chat-header-name" style="font-size: 1.05rem; margin-bottom: 2px;">Room</h3>
+                    <span id="chat-header-id" class="copyable-id" onclick="copyRoomId()" title="Tap to copy">ID: ...</span>
+                </div>
+            </div>
+            <button id="admin-settings-btn" class="icon-btn hidden" onclick="openAdminModal()" style="background: var(--bg-hover);"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 C13.73,21.83,13.93,22,14.17,22h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg></button>
+        </div>
+        
+        <div id="chat-messages" class="chat-body"></div>
+        
+        <div id="typing-indicator" class="typing-indicator hidden">
+            <div class="typing-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <span id="typing-text" class="typing-text">Someone is typing...</span>
+        </div>
+        
+        <form id="chat-form" class="chat-footer">
+            <input type="text" id="msg-input" class="chat-input" placeholder="Type a message..." autocomplete="off" oninput="handleTyping()">
+            <button type="submit" class="send-btn">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </form>
+    </div>
+
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Room Settings</h3>
+                <button class="icon-btn" onclick="document.getElementById('admin-modal').classList.remove('active')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <div class="modal-body">
+                <div style="background: var(--bg-hover); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; text-align: center; border: 1px dashed var(--border-color);">
+                    <p style="font-size: 0.8rem; margin-bottom: 0.5rem; font-weight:600;">Share ID to invite</p>
+                    <code id="admin-room-code" class="copyable-id" onclick="copyRoomId()" style="font-size: 1.2rem;"></code>
+                </div>
+                <h4 style="margin-bottom: 1rem;">Members (<span id="admin-member-count">0</span>)</h4>
+                <div id="admin-members-list" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem;"></div>
+                <button class="btn btn-danger" onclick="deleteRoom()">Delete Workspace</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, push, onValue, remove, off } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4FPU1uapSWjbpyR1Jjf854T7V4qMV-TM",
+            authDomain: "skedz-a13eb.firebaseapp.com",
+            databaseURL: "https://skedz-a13eb-default-rtdb.firebaseio.com",
+            projectId: "skedz-a13eb",
+            storageBucket: "skedz-a13eb.firebasestorage.app",
+            messagingSenderId: "318431223204",
+            appId: "1:318431223204:web:e53e09d5215773b41eb531"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let currentProfile = { name: "User", img: "https://via.placeholder.com/100" };
+        let currentRoomId = null;
+        let activeListeners = {};
+        let typingTimeout = null;
+
+        // Make functions globally available for inline UI clicks
+        window.toggleAccordion = (containerId, btnElement) => {
+            const container = document.getElementById(containerId);
+            const isActive = container.classList.contains('active');
+            document.querySelectorAll('.collapsible-form').forEach(f => f.classList.remove('active'));
+            document.querySelectorAll('.tap-action-btn').forEach(b => b.classList.remove('active'));
+            if (!isActive) { container.classList.add('active'); btnElement.classList.add('active'); }
+        };
+
+        window.switchTab = (tab, el, isMobile = false) => {
+            const selector = isMobile ? '.mobile-nav-item' : '.top-nav-item';
+            document.querySelectorAll(selector).forEach(n => n.classList.remove('active'));
+            if(el) el.classList.add('active');
+            
+            const otherSelector = isMobile ? '.top-nav-item' : '.mobile-nav-item';
+            const index = Array.from(document.querySelectorAll(selector)).indexOf(el);
+            if(index >= 0) {
+                document.querySelectorAll(otherSelector).forEach(n => n.classList.remove('active'));
+                document.querySelectorAll(otherSelector)[index].classList.add('active');
+            }
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + tab).classList.add('active');
+            if(document.getElementById('chat-interface').classList.contains('active')) closeChatScreen();
+        };
+
+        window.validateForm = (type) => {
+            if(type === 'join') {
+                document.getElementById('btn-join').disabled = document.getElementById('join-room-id').value.trim() === '';
+            } else if (type === 'create') {
+                document.getElementById('btn-create').disabled = document.getElementById('new-room-name').value.trim() === '';
+            }
+        };
+
+        // --- FIX: Secure Event Listeners for Forms (Solves Mobile Bug) ---
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            handleAuth('login');
+        });
+
+        document.getElementById('btn-signup').addEventListener('click', async (e) => {
+            e.preventDefault();
+            handleAuth('signup');
+        });
+
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            triggerSendMessage();
+        });
+
+        // Auth Logic
+        async function handleAuth(action) {
+            const e = document.getElementById('auth-email').value;
+            const p = document.getElementById('auth-pass').value;
+            if(!e || !p) return alert("Credentials required");
+            try {
+                if(action === 'login') { await signInWithEmailAndPassword(auth, e, p); } 
+                else {
+                    const cred = await createUserWithEmailAndPassword(auth, e, p);
+                    const defaultName = e.split('@')[0];
+                    const defaultImg = `https://ui-avatars.com/api/?name=${defaultName}&background=000&color=fff`;
+                    await set(ref(db, `users/${cred.user.uid}`), { name: defaultName, img: defaultImg });
+                }
+            } catch(err) { alert(err.message.replace("Firebase: ", "")); }
+        }
+
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('top-navbar').classList.remove('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                loadProfile(); listenToMyChats(); listenToPublicRooms();
+            } else {
+                currentUser = null; detachAll();
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('top-navbar').classList.add('hidden');
+                document.getElementById('main-content').classList.add('hidden');
+            }
+        });
+
+        function loadProfile() {
+            get(ref(db, `users/${currentUser.uid}`)).then(snap => {
+                if(snap.exists()) {
+                    currentProfile = snap.val();
+                    document.getElementById('profile-name').value = currentProfile.name;
+                    document.getElementById('profile-img-url').value = currentProfile.img;
+                    document.getElementById('profile-preview').src = currentProfile.img;
+                }
+            });
+        }
+        
+        window.saveProfile = async () => {
+            const name = document.getElementById('profile-name').value;
+            const img = document.getElementById('profile-img-url').value;
+            await set(ref(db, `users/${currentUser.uid}`), { name, img });
+            alert("Profile Saved!"); loadProfile(); 
+        };
+
+        window.createRoom = async () => {
+            const name = document.getElementById('new-room-name').value.trim();
+            const icon = document.getElementById('new-room-icon').value.trim() || `https://ui-avatars.com/api/?name=${name}&background=random`;
+            const type = document.getElementById('new-room-type').value;
+            const pass = document.getElementById('new-room-pass').value;
+            const limit = parseInt(document.getElementById('new-room-limit').value) || 50;
+
+            const newRoomRef = push(ref(db, 'rooms'));
+            const roomId = newRoomRef.key;
+            const roomData = { id: roomId, name, icon, type, pass, limit, adminId: currentUser.uid };
+
+            await set(newRoomRef, roomData);
+            await set(ref(db, `room_members/${roomId}/${currentUser.uid}`), { role: 'admin' });
+            await set(ref(db, `user_chats/${currentUser.uid}/${roomId}`), { joinedAt: Date.now() });
+
+            document.getElementById('new-room-name').value = '';
+            document.getElementById('btn-create').disabled = true;
+            toggleAccordion('create-room-container', document.querySelectorAll('.tap-action-btn')[1]);
+            openChatScreen(roomData); 
+        };
+
+        window.joinRoom = async (forcedId = null) => {
+            const roomId = forcedId || document.getElementById('join-room-id').value.trim();
+            const pass = document.getElementById('join-room-pass').value;
+            if(!roomId) return;
+
+            const roomSnap = await get(ref(db, `rooms/${roomId}`));
+            if(!roomSnap.exists()) return alert("Room not found!");
+            const roomData = roomSnap.val();
+
+            const ucSnap = await get(ref(db, `user_chats/${currentUser.uid}/${roomId}`));
+            if(ucSnap.exists()) {
+                document.getElementById('join-room-container').classList.remove('active');
+                document.querySelectorAll('.tap-action-btn')[0].classList.remove('active');
+                return openChatScreen(roomData);
+            }
+
+            if(roomData.pass && roomData.pass !== pass) {
+                let p = pass;
+                if(forcedId && !pass) p = prompt("Enter room password:");
+                if(p !== roomData.pass) return alert("Incorrect password");
+            }
+
+            await set(ref(db, `room_members/${roomId}/${currentUser.uid}`), { role: 'member' });
+            await set(ref(db, `user_chats/${currentUser.uid}/${roomId}`), { joinedAt: Date.now() });
+            
+            document.getElementById('join-room-id').value = '';
+            document.getElementById('btn-join').disabled = true;
+            document.getElementById('join-room-container').classList.remove('active');
+            document.querySelectorAll('.tap-action-btn')[0].classList.remove('active');
+            openChatScreen(roomData);
+        };
+
+        function listenToPublicRooms() {
+            onValue(ref(db, 'rooms'), snap => {
+                const list = document.getElementById('public-rooms-list');
+                list.innerHTML = ''; let hasPublic = false;
+                if(snap.exists()){
+                    snap.forEach(child => {
+                        const room = child.val();
+                        if(room.type === 'public') {
+                            hasPublic = true;
+                            list.innerHTML += `
+                                <div class="list-item" onclick="joinRoom('${room.id}')">
+                                    <img src="${room.icon}" class="avatar">
+                                    <div class="list-item-content">
+                                        <div class="list-item-title">${room.name} ${room.pass ? '🔒' : ''}</div>
+                                        <div class="list-item-meta">ID: ${room.id}</div>
+                                    </div>
+                                    <button class="btn btn-outline" style="width:auto; padding: 0.4rem 1rem; border-radius: 20px;">Join</button>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                if(!hasPublic) list.innerHTML = '<p class="text-center" style="font-size:0.9rem;">No public rooms found.</p>';
+            });
+        }
+
+        function listenToMyChats() {
+            onValue(ref(db, `user_chats/${currentUser.uid}`), async (snap) => {
+                const list = document.getElementById('my-chats-list');
+                list.innerHTML = '';
+                if(snap.exists()) {
+                    for(const roomId of Object.keys(snap.val())) {
+                        const roomSnap = await get(ref(db, `rooms/${roomId}`));
+                        if(roomSnap.exists()) {
+                            const room = roomSnap.val();
+                            list.innerHTML += `
+                                <div class="list-item" onclick='openChatScreen(${JSON.stringify(room)})'>
+                                    <img src="${room.icon}" class="avatar">
+                                    <div class="list-item-content">
+                                        <div class="list-item-title">${room.name}</div>
+                                        <div class="list-item-meta">${room.adminId === currentUser.uid ? '👑 You are Admin' : 'Member'}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else { remove(ref(db, `user_chats/${currentUser.uid}/${roomId}`)); }
+                    }
+                } else { list.innerHTML = '<p class="text-center">You have no active chats.</p>'; }
+            });
+        }
+
+        window.copyRoomId = () => {
+            if(currentRoomId) {
+                navigator.clipboard.writeText(currentRoomId).then(() => {
+                    const idSpan = document.getElementById('chat-header-id');
+                    const originalText = idSpan.innerText;
+                    idSpan.innerText = "✓ Copied!";
+                    setTimeout(() => idSpan.innerText = originalText, 1500);
+                });
+            }
+        };
+
+        window.openChatScreen = (room) => {
+            currentRoomId = room.id;
+            document.getElementById('chat-interface').classList.add('active');
+            document.getElementById('chat-header-name').innerText = room.name;
+            document.getElementById('chat-header-id').innerText = `ID: ${room.id}`;
+            document.getElementById('chat-header-img').src = room.icon;
+
+            if(currentUser.uid === room.adminId) document.getElementById('admin-settings-btn').classList.remove('hidden');
+            else document.getElementById('admin-settings-btn').classList.add('hidden');
+
+            activeListeners['msg'] = onValue(ref(db, `messages/${room.id}`), snap => {
+                get(ref(db, `rooms/${room.id}`)).then(rsnap => { if(!rsnap.exists()){ alert("Room was deleted."); closeChatScreen(); } });
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = '';
+                if(snap.exists()){
+                    snap.forEach(child => {
+                        const msg = child.val();
+                        const isMe = msg.senderId === currentUser.uid;
+                        const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        box.innerHTML += `
+                            <div class="message-wrapper ${isMe ? 'me' : 'other'}">
+                                ${!isMe ? `<div class="sender-name">${msg.senderName}</div>` : ''}
+                                <div class="message-bubble">${msg.text}<div class="message-time">${time}</div></div>
+                            </div>
+                        `;
+                    });
+                    box.scrollTop = box.scrollHeight;
+                } else { box.innerHTML = '<div style="margin: auto; color: var(--text-muted); font-weight: 500;">Start typing to chat 👋</div>'; }
+            });
+
+            activeListeners['typing'] = onValue(ref(db, `typing/${room.id}`), snap => {
+                const indicator = document.getElementById('typing-indicator');
+                const typingText = document.getElementById('typing-text');
+                if(snap.exists()) {
+                    let typingUsers = [];
+                    snap.forEach(child => { if(child.key !== currentUser.uid) typingUsers.push(child.val()); });
+                    if(typingUsers.length > 0) {
+                        typingText.innerText = typingUsers.length === 1 ? `${typingUsers[0]} is typing...` : 'Multiple people are typing...';
+                        indicator.classList.remove('hidden');
+                        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+                    } else { indicator.classList.add('hidden'); }
+                } else { indicator.classList.add('hidden'); }
+            });
+        };
+
+        window.closeChatScreen = () => {
+            document.getElementById('chat-interface').classList.remove('active');
+            if(activeListeners['msg']) off(ref(db, `messages/${currentRoomId}`));
+            if(activeListeners['typing']) off(ref(db, `typing/${currentRoomId}`));
+            if(currentRoomId && currentUser) remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`));
+            currentRoomId = null;
+        };
+
+        window.handleTyping = () => {
+            if(currentRoomId && currentUser) {
+                set(ref(db, `typing/${currentRoomId}/${currentUser.uid}`), currentProfile.name || "User");
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => { remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); }, 2000);
+            }
+        };
+
+        async function triggerSendMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if(text && currentRoomId && currentUser) {
+                input.value = ''; 
+                clearTimeout(typingTimeout);
+                remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`));
+                try {
+                    await push(ref(db, `messages/${currentRoomId}`), {
+                        text: text, senderId: currentUser.uid, 
+                        senderName: currentProfile.name || "User", timestamp: Date.now()
+                    });
+                } catch(e) { alert("Error: " + e.message); }
+            }
+        }
+
+        window.openAdminModal = async () => {
+            document.getElementById('admin-room-code').innerText = currentRoomId;
+            document.getElementById('admin-modal').classList.add('active');
+            const list = document.getElementById('admin-members-list');
+            list.innerHTML = '<p class="text-center">Loading...</p>';
+
+            const memSnap = await get(ref(db, `room_members/${currentRoomId}`));
+            if(memSnap.exists()){
+                list.innerHTML = '';
+                const members = memSnap.val();
+                document.getElementById('admin-member-count').innerText = Object.keys(members).length;
+
+                for(const uid of Object.keys(members)) {
+                    const uSnap = await get(ref(db, `users/${uid}`));
+                    const uData = uSnap.exists() ? uSnap.val() : { name: "Unknown", img: "" };
+                    let actionBtn = uid !== currentUser.uid ? `<button class="btn btn-danger" style="width:auto; padding: 0.4rem 0.8rem; font-size:0.8rem; border-radius: 8px;" onclick="kick('${uid}')">Kick</button>` : `<span style="font-size:0.8rem; font-weight: 600;">Admin</span>`;
+                    list.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.75rem; background: var(--bg-body); border-radius: var(--radius-md);">
+                            <div style="display:flex; align-items:center; gap: 0.75rem;"><img src="${uData.img}" class="avatar" style="width:32px; height:32px; margin:0;"><span style="font-weight: 600;">${uData.name}</span></div>
+                            ${actionBtn}
+                        </div>
+                    `;
+                }
+            }
+        };
+
+        window.kick = async (uid) => { await remove(ref(db, `room_members/${currentRoomId}/${uid}`)); await remove(ref(db, `user_chats/${uid}/${currentRoomId}`)); openAdminModal(); };
+        window.deleteRoom = async () => {
+            if(confirm("Are you sure? This completely wipes the room.")) {
+                await remove(ref(db, `messages/${currentRoomId}`)); await remove(ref(db, `room_members/${currentRoomId}`)); await remove(ref(db, `rooms/${currentRoomId}`));
+                document.getElementById('admin-modal').classList.remove('active'); closeChatScreen();
+            }
+        };
+        function detachAll() { off(ref(db, 'rooms')); if(currentUser) off(ref(db, `user_chats/${currentUser.uid}`)); }
+    </script>
+</body>
+</html>
