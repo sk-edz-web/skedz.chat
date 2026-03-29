@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <meta name="title" content="sk secure Chat - Premium Secure Workspace">
-    <meta name="description" content="Join ProChat to connect with your teams and communities. A highly secure, real-time, and modern private chat platform.">
     <meta name="theme-color" content="#000000">
 
     <style>
@@ -31,7 +30,6 @@
             --transition: all 0.25s ease;
         }
 
-        /* SCROLLBAR HIDE FIX */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; -ms-overflow-style: none; scrollbar-width: none; }
         ::-webkit-scrollbar { display: none; }
         
@@ -98,7 +96,6 @@
         #chat-interface.active { transform: translateY(0); }
 
         .chat-header { height: 70px; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); box-shadow: var(--shadow-sm); z-index: 10; flex-shrink: 0; }
-        
         .chat-body { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; position: relative; background-size: cover; background-position: center; background-repeat: no-repeat; transition: background 0.3s ease;}
 
         .copyable-id { font-size: 0.75rem; color: var(--accent); font-weight: 600; cursor: pointer; padding: 2px 6px; background: rgba(59,130,246,0.1); border-radius: 4px; transition: 0.2s; display: inline-block;}
@@ -115,23 +112,26 @@
         .message-wrapper.other { align-items: flex-start; }
         
         .sender-name { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.25rem; margin-left: 0.5rem; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
-        .message-bubble { position: relative; padding: 0.8rem 1rem; border-radius: 1.25rem; font-size: 0.95rem; line-height: 1.4; box-shadow: var(--shadow-sm); word-wrap: break-word; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; }
+        .message-bubble { position: relative; padding: 0.8rem 1rem; border-radius: 1.25rem; font-size: 0.95rem; line-height: 1.4; box-shadow: var(--shadow-sm); word-wrap: break-word; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; display: flex; flex-direction: column; }
         .message-wrapper.me .message-bubble { background-color: var(--primary); color: white; border-bottom-right-radius: 0.3rem; }
         .message-wrapper.other .message-bubble { background-color: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); border-bottom-left-radius: 0.3rem; }
-        .message-time { font-size: 0.65rem; margin-top: 0.3rem; color: var(--text-muted); font-weight: 600; text-align: right; opacity: 0.8; }
+        
+        .message-time-container { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 0.3rem; }
+        .message-time { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; opacity: 0.8; }
+        .msg-ticks { font-size: 0.7rem; color: #9ca3af; letter-spacing: -2px; margin-right: 2px;}
+        .msg-ticks.seen { color: #3b82f6; }
 
         .quoted-msg { background: rgba(0,0,0,0.1); border-left: 3px solid var(--accent); padding: 0.5rem; border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.85rem; }
         .message-wrapper.me .quoted-msg { background: rgba(255,255,255,0.2); border-left-color: white;}
         .quoted-sender { font-weight: 700; margin-bottom: 2px; font-size: 0.75rem;}
 
-        /* --- EMOJI CUT-OFF FIX --- */
-        .reaction-picker { position: absolute; bottom: 100%; background: white; border-radius: 20px; padding: 6px 12px; gap: 10px; box-shadow: var(--shadow-md); z-index: 50; border: 1px solid var(--border-color); display: none; width: max-content; }
-        .message-wrapper.me .reaction-picker { right: 0; }
-        .message-wrapper.other .reaction-picker { left: 0; }
+        .reaction-picker { position: absolute; bottom: calc(100% + 5px); background: white; border-radius: 20px; padding: 6px 12px; gap: 10px; box-shadow: var(--shadow-md); z-index: 999; border: 1px solid var(--border-color); display: none; width: max-content; }
+        .message-wrapper.me .reaction-picker { right: 0; transform-origin: bottom right; }
+        .message-wrapper.other .reaction-picker { left: 0; transform-origin: bottom left; }
         .reaction-picker.active { display: flex; animation: popUpEmoji 0.2s ease forwards; }
         .reaction-picker span { cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
         .reaction-picker span:hover { transform: scale(1.3); }
-        @keyframes popUpEmoji { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popUpEmoji { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
         .reactions-display { position: absolute; bottom: -10px; right: 10px; background: white; border-radius: 10px; padding: 2px 6px; font-size: 0.75rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); display: flex; gap: 2px; }
 
@@ -150,12 +150,30 @@
         .chat-input { flex: 1; padding: 0.9rem 1.25rem; border-radius: 2rem; background: var(--bg-body); border: 1px solid transparent; font-weight: 500; outline: none; }
         .chat-input:focus { background: var(--bg-surface); border-color: var(--accent); }
         
-        .send-btn, .gif-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
+        .send-btn, .gif-btn, .mic-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
         .send-btn { background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
         .gif-btn { background: var(--bg-body); color: var(--text-muted); font-weight: 700; font-size: 0.8rem;}
-        .send-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+        
+        .mic-btn { background: var(--danger); color: white; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+        
+        .send-btn:hover, .mic-btn:hover { transform: scale(1.05); }
         .gif-btn:hover { background: #e5e7eb; color: var(--text-main);}
-        .send-btn svg { width: 20px; height: 20px; fill: currentColor; margin-left: 3px; pointer-events: none; } 
+        .send-btn svg, .mic-btn svg { width: 20px; height: 20px; fill: currentColor; pointer-events: none; } 
+
+        /* --- THE NEW RECORDING UI (WHATSAPP STYLE) --- */
+        #recording-ui { flex: 1; display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 0.5rem 1rem; border-radius: 2rem; border: 1px solid var(--border-color); }
+        .voice-wave { display: flex; align-items: center; gap: 2px; height: 20px; padding: 0 10px; flex: 1; justify-content: center;}
+        .wave-bar { width: 3px; height: 5px; background-color: var(--danger); border-radius: 10px; animation: wave-pulse 1s ease-in-out infinite; transition: height 0.1s ease; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+        .wave-bar:nth-child(7) { animation-delay: 0.6s; }
+        .wave-bar:nth-child(8) { animation-delay: 0.7s; }
+        .wave-bar:nth-child(9) { animation-delay: 0.8s; }
+        .wave-bar:nth-child(10) { animation-delay: 0.9s; }
+        @keyframes wave-pulse { 0%, 100% { height: 5px; } 50% { height: 18px; } }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 300; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; padding: 1rem; }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
@@ -192,7 +210,7 @@
 
     <nav id="top-navbar" class="hidden">
         <div class="nav-brand">
-            <svg viewBox="0 0 24 24" style="width:28px; fill:var(--primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg> ProChat
+            <svg viewBox="0 0 24 24" style="width:28px; fill:var(--primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg> sk pvt Chat
         </div>
         <div class="top-nav-links">
             <div class="top-nav-item active" onclick="switchTab('home', this)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> Home</div>
@@ -295,11 +313,28 @@
             <button class="icon-btn" onclick="cancelReply()" style="padding:4px;"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
         </div>
 
-        <form id="chat-form" class="chat-footer">
-            <button type="button" class="gif-btn" onclick="openGifModal()">GIF</button>
-            <input type="text" id="msg-input" class="chat-input" placeholder="Message... (Swipe right to reply)" autocomplete="off" oninput="handleTyping()">
-            <button type="submit" class="send-btn">
+        <form id="chat-form" class="chat-footer" onsubmit="event.preventDefault(); triggerSendMessage();">
+            <button type="button" id="gif-btn" class="gif-btn" onclick="openGifModal()">GIF</button>
+            
+            <input type="text" id="msg-input" class="chat-input" placeholder="Message... (Swipe right to reply)" autocomplete="off" oninput="handleTypingAndButtons()">
+            
+            <div id="recording-ui" class="hidden">
+                <button type="button" onclick="cancelVoiceRecord()" class="icon-btn" style="color: var(--danger); padding: 5px;">🗑️</button>
+                <div class="voice-wave">
+                    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                    <div class="wave-bar" style="background-color: var(--accent)"></div><div class="wave-bar" style="background-color: var(--accent)"></div>
+                    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                </div>
+                <span id="record-time" style="font-weight: 700; font-size: 0.9rem; color: var(--danger); min-width: 40px; text-align: center;">0:00</span>
+                <button type="button" onclick="sendVoiceMessage()" class="icon-btn" style="padding: 5px; color: var(--accent); font-size: 1.2rem;">🎙️</button>
+            </div>
+            
+            <button type="submit" id="send-btn" class="send-btn hidden">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+            
+            <button type="button" id="mic-btn" class="mic-btn" onclick="startVoiceRecord()">
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
             </button>
         </form>
     </div>
@@ -328,9 +363,7 @@
                 <h3>Search GIF</h3>
                 <button class="icon-btn" onclick="document.getElementById('gif-modal').classList.remove('active')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
             </div>
-            
             <input type="text" id="gif-search-input" class="chat-input" placeholder="Search Tenor GIFs..." style="margin-bottom: 15px; border: 1px solid var(--border-color); width: 100%; box-sizing: border-box;" oninput="fetchGifs(this.value)">
-            
             <div class="gif-grid" id="gif-results">
                 <p style="text-align: center; grid-column: span 2; font-size: 0.85rem; color: gray;">Loading...</p>
             </div>
@@ -344,9 +377,9 @@
                 <button class="icon-btn" onclick="document.getElementById('wallpaper-modal').classList.remove('active')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
             </div>
             <div class="gif-grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
-                <img src="data:image/jpeg;base64,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" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
-                <img src="data:image/jpeg;base64,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" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
-                <img src="data:image/jpeg;base64,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" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://i.pinimg.com/474x/7d/8b/0b/7d8b0baf8368be4aa18d5d72d6503383.jpg" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS58lR9iyBhca-qNp4qnAE1hKw_C0ExQLdTkw&s" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuFqWWkCJQ8rKKrdRwzl8OnoUw57ysosWCkA&s" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
                 <div style="background:var(--bg-body); display:flex; justify-content:center; align-items:center; height:120px; border-radius:8px; cursor:pointer;" onclick="setWallpaper('')">Remove BG</div>
             </div>
         </div>
@@ -378,6 +411,14 @@
         let typingTimeout = null;
         let replyingTo = null;
         let longPressTimer;
+
+        // Voice
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordTimerInterval;
+        let recordSeconds = 0;
+        window.waveAnimationInterval = null; // New wave interval variable
 
         window.toggleAccordion = (containerId, btnElement) => {
             const container = document.getElementById(containerId);
@@ -413,7 +454,13 @@
 
         document.getElementById('auth-form').addEventListener('submit', async (e) => { e.preventDefault(); handleAuth('login'); });
         document.getElementById('btn-signup').addEventListener('click', async (e) => { e.preventDefault(); handleAuth('signup'); });
-        document.getElementById('chat-form').addEventListener('submit', async (e) => { e.preventDefault(); triggerSendMessage(); });
+
+        document.getElementById('msg-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                window.triggerSendMessage();
+            }
+        });
 
         async function handleAuth(action) {
             const e = document.getElementById('auth-email').value;
@@ -608,7 +655,8 @@
             document.getElementById('chat-header-name').innerText = room.name;
             document.getElementById('chat-header-id').innerText = `ID: ${room.id}`;
             document.getElementById('chat-header-img').src = room.icon;
-
+            
+            resetChatUI();
             applyBackground(room.id);
 
             if(currentUser.uid === room.adminId) document.getElementById('admin-settings-btn').classList.remove('hidden');
@@ -630,9 +678,21 @@
                         const isMe = msg.senderId === currentUser.uid;
                         const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                         
+                        if (!isMe && (!msg.seenBy || !msg.seenBy[currentUser.uid])) {
+                            update(ref(db, `messages/${room.id}/${msgId}/seenBy`), { [currentUser.uid]: true });
+                        }
+
                         let replyHtml = '';
                         if(msg.replyTo) {
-                            replyHtml = `<div class="quoted-msg"><div class="quoted-sender">${msg.replyTo.senderName}</div>${msg.replyTo.text.substring(0, 50)}...</div>`;
+                            let rText = '';
+                            if (msg.replyTo.type === 'audio') {
+                                rText = '🎤 Voice Message';
+                            } else if (msg.replyTo.type === 'gif' || (msg.replyTo.text && msg.replyTo.text.includes('.gif'))) {
+                                rText = '🖼️ GIF';
+                            } else {
+                                rText = msg.replyTo.text.substring(0, 50) + (msg.replyTo.text.length > 50 ? '...' : '');
+                            }
+                            replyHtml = `<div class="quoted-msg"><div class="quoted-sender">${msg.replyTo.senderName}</div>${rText}</div>`;
                         }
 
                         let reactionsHtml = '';
@@ -643,8 +703,23 @@
                             }
                         }
 
+                        let parsedContent = msg.text;
+                        if (msg.type === 'audio') {
+                            const audioMime = msg.mimeType || 'audio/webm'; 
+                            parsedContent = `<audio controls style="max-width: 210px; height: 35px; outline:none; border-radius: 20px;"><source src="${msg.text}" type="${audioMime}"></audio>`;
+                        } else if (msg.text.startsWith('http') && msg.text.includes('.gif')) {
+                            parsedContent = `<img src="${msg.text}" style="max-width:200px; border-radius:8px;">`;
+                        }
+
+                        let ticksHtml = '';
+                        if (isMe) {
+                            const seenCount = msg.seenBy ? Object.keys(msg.seenBy).length : 0;
+                            const isSeen = seenCount > 0;
+                            ticksHtml = `<span class="msg-ticks ${isSeen ? 'seen' : ''}">✓✓</span>`;
+                        }
+
                         htmlContent += `
-                            <div class="message-row ${isMe ? 'me' : 'other'}" data-msgid="${msgId}" data-sender="${msg.senderName}" data-text="${msg.text}">
+                            <div class="message-row ${isMe ? 'me' : 'other'}" data-msgid="${msgId}" data-sender="${msg.senderName}" data-text="${msg.text}" data-type="${msg.type || 'text'}">
                                 ${!isMe ? `<img src="${msg.senderImg || 'https://via.placeholder.com/100'}" class="msg-avatar">` : ''}
                                 <div class="message-wrapper ${isMe ? 'me' : 'other'}">
                                     ${!isMe ? `<div class="sender-name">${msg.senderName}</div>` : ''}
@@ -658,8 +733,12 @@
                                          onmouseleave="cancelLongPress()">
                                         
                                         ${replyHtml}
-                                        ${msg.text.startsWith('http') && msg.text.includes('.gif') ? `<img src="${msg.text}" style="max-width:200px; border-radius:8px;">` : msg.text}
-                                        <div class="message-time">${time}</div>
+                                        ${parsedContent}
+                                        
+                                        <div class="message-time-container">
+                                            <span class="message-time">${time}</span>
+                                            ${ticksHtml}
+                                        </div>
                                         ${reactionsHtml}
                                         
                                         <div class="reaction-picker" id="rp-${msgId}">
@@ -668,7 +747,7 @@
                                             <span onclick="addReaction('${msgId}', '😁', event)">😁</span>
                                             <span onclick="addReaction('${msgId}', '🤧', event)">🤧</span>
                                             <span onclick="addReaction('${msgId}', '💖', event)">💖</span>
-                                            <span onclick="addReaction('${msgId}', '🥰', event)">🥰</span>
+                                            <span onclick="addReaction('${msgId}', '😻', event)">😻</span>
                                         </div>
                                     </div>
                                 </div>
@@ -739,17 +818,22 @@
             chatBox.addEventListener('touchend', e => {
                 if(!currentMsgRow) return;
                 let diff = e.changedTouches[0].clientX - startX;
-                if(diff > 40) setReply(currentMsgRow.dataset.msgid, currentMsgRow.dataset.sender, currentMsgRow.dataset.text);
+                if(diff > 40) {
+                    let text = currentMsgRow.dataset.text;
+                    let type = currentMsgRow.dataset.type;
+                    setReply(currentMsgRow.dataset.msgid, currentMsgRow.dataset.sender, text, type);
+                }
                 currentMsgRow.style.transform = `translateX(0)`;
                 currentMsgRow = null;
             });
         }
 
-        window.setReply = (msgId, senderName, text) => {
-            replyingTo = { msgId, senderName, text };
+        window.setReply = (msgId, senderName, text, type) => {
+            replyingTo = { msgId, senderName, text, type };
             document.getElementById('reply-to-name').innerText = senderName;
             
-            if(text.includes('.gif')) document.getElementById('reply-to-text').innerText = "GIF Image";
+            if(type === 'audio') document.getElementById('reply-to-text').innerText = "🎤 Voice Message";
+            else if(type === 'gif' || text.includes('.gif')) document.getElementById('reply-to-text').innerText = "🖼️ GIF";
             else document.getElementById('reply-to-text').innerText = text;
             
             document.getElementById('reply-preview-bar').classList.add('active');
@@ -796,7 +880,6 @@
             await set(ref(db, `messages/${currentRoomId}/${msgId}/reactions/${currentUser.uid}`), emoji);
         };
 
-        // --- TENOR API LOGIC ADDED HERE ---
         const TENOR_API_KEY = "LIVDSRZULELA";
 
         window.openGifModal = () => {
@@ -826,9 +909,8 @@
                     return;
                 }
                 
-                // Tenor data structure parsing
                 data.results.forEach(gif => {
-                    const gifUrl = gif.media[0].tinygif.url; // Fast loading preview
+                    const gifUrl = gif.media[0].tinygif.url; 
                     resultsContainer.innerHTML += `<img src="${gifUrl}" class="gif-item" onclick="sendGif('${gifUrl}')">`;
                 });
             } catch (error) {
@@ -842,11 +924,12 @@
             try {
                 await push(ref(db, `messages/${currentRoomId}`), {
                     text: url,
+                    type: 'gif',
                     senderId: currentUser.uid, 
                     senderName: currentProfile.name || "User", 
                     senderImg: currentProfile.img || "https://via.placeholder.com/100",
                     timestamp: Date.now(),
-                    replyTo: replyingTo
+                    replyTo: replyingTo || null
                 });
                 cancelReply();
                 setTimeout(() => {
@@ -864,29 +947,42 @@
             currentRoomId = null; cancelReply();
         };
 
-        window.handleTyping = () => {
+        window.handleTypingAndButtons = () => {
             if(currentRoomId && currentUser) {
                 set(ref(db, `typing/${currentRoomId}/${currentUser.uid}`), currentProfile.name || "User");
                 clearTimeout(typingTimeout);
                 typingTimeout = setTimeout(() => { remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); }, 2000);
             }
+            
+            const inputVal = document.getElementById('msg-input').value.trim();
+            if(inputVal !== '') {
+                document.getElementById('send-btn').classList.remove('hidden');
+                document.getElementById('mic-btn').classList.add('hidden');
+            } else {
+                document.getElementById('send-btn').classList.add('hidden');
+                document.getElementById('mic-btn').classList.remove('hidden');
+            }
         };
 
-        async function triggerSendMessage() {
+        window.triggerSendMessage = async () => {
             const input = document.getElementById('msg-input');
             const text = input.value.trim();
+            
             if(text && currentRoomId && currentUser) {
                 input.value = ''; 
+                handleTypingAndButtons(); 
                 clearTimeout(typingTimeout);
                 remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`));
+                
                 try {
                     await push(ref(db, `messages/${currentRoomId}`), {
                         text: text, 
+                        type: 'text',
                         senderId: currentUser.uid, 
                         senderName: currentProfile.name || "User", 
                         senderImg: currentProfile.img || "https://via.placeholder.com/100",
                         timestamp: Date.now(),
-                        replyTo: replyingTo
+                        replyTo: replyingTo || null
                     });
                     cancelReply();
                     
@@ -896,7 +992,122 @@
                     }, 100);
                 } catch(e) { alert("Error: " + e.message); }
             }
+        };
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
         }
+
+        window.resetChatUI = () => {
+            document.getElementById('recording-ui').classList.add('hidden');
+            document.getElementById('msg-input').classList.remove('hidden');
+            document.getElementById('gif-btn').classList.remove('hidden');
+            handleTypingAndButtons();
+        };
+
+        window.sendVoiceMessage = () => {
+            if (isRecording && mediaRecorder) {
+                isRecording = false; 
+                window.isCancelledRecord = false;
+                mediaRecorder.stop(); 
+            }
+        };
+
+        window.startVoiceRecord = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                let audioMimeType = 'audio/webm';
+                if (MediaRecorder.isTypeSupported('audio/mp4')) audioMimeType = 'audio/mp4';
+
+                mediaRecorder = new MediaRecorder(stream, { mimeType: audioMimeType });
+                audioChunks = [];
+                isRecording = true;
+                window.isCancelledRecord = false;
+
+                document.getElementById('msg-input').classList.add('hidden');
+                document.getElementById('gif-btn').classList.add('hidden');
+                document.getElementById('mic-btn').classList.add('hidden');
+                document.getElementById('send-btn').classList.add('hidden');
+                
+                document.getElementById('recording-ui').classList.remove('hidden');
+
+                recordSeconds = 0;
+                document.getElementById('record-time').innerText = "0:00";
+                
+                // Timer for seconds
+                recordTimerInterval = setInterval(() => {
+                    recordSeconds++;
+                    document.getElementById('record-time').innerText = formatTime(recordSeconds);
+                }, 1000);
+
+                // Animation for bars
+                window.waveAnimationInterval = setInterval(() => {
+                    document.querySelectorAll('.wave-bar').forEach(bar => {
+                        let randomHeight = Math.floor(Math.random() * 15) + 5;
+                        bar.style.height = randomHeight + 'px';
+                    });
+                }, 100);
+
+                if(navigator.vibrate) navigator.vibrate(50);
+
+                mediaRecorder.addEventListener("dataavailable", event => {
+                    audioChunks.push(event.data);
+                });
+
+                mediaRecorder.addEventListener("stop", async () => {
+                    clearInterval(recordTimerInterval);
+                    clearInterval(window.waveAnimationInterval); // Clear the wave animation when stopped
+                    stream.getTracks().forEach(track => track.stop());
+                    resetChatUI();
+
+                    if (window.isCancelledRecord) return; 
+
+                    const audioBlob = new Blob(audioChunks, { type: audioMimeType }); 
+                    
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = async () => {
+                        const base64Audio = reader.result;
+                        
+                        try {
+                            await push(ref(db, `messages/${currentRoomId}`), {
+                                text: base64Audio,
+                                type: 'audio',
+                                mimeType: audioMimeType, 
+                                senderId: currentUser.uid, 
+                                senderName: currentProfile.name || "User", 
+                                senderImg: currentProfile.img || "https://via.placeholder.com/100",
+                                timestamp: Date.now(),
+                                replyTo: replyingTo || null
+                            });
+                            
+                            cancelReply();
+                            setTimeout(() => {
+                                const box = document.getElementById('chat-messages');
+                                box.scrollTop = box.scrollHeight;
+                            }, 100);
+                        } catch(err) {
+                            alert("Error sending voice: " + err.message);
+                        }
+                    };
+                });
+
+                mediaRecorder.start();
+
+            } catch (err) {
+                alert("Mic access denied! Please allow microphone permissions.");
+            }
+        };
+
+        window.cancelVoiceRecord = () => {
+            if(isRecording && mediaRecorder) {
+                window.isCancelledRecord = true;
+                isRecording = false; 
+                mediaRecorder.stop();
+            }
+        };
 
         window.openAdminModal = async () => {
             document.getElementById('admin-room-code').innerText = currentRoomId;
@@ -927,8 +1138,27 @@
         window.kick = async (uid) => { await remove(ref(db, `room_members/${currentRoomId}/${uid}`)); await remove(ref(db, `user_chats/${uid}/${currentRoomId}`)); openAdminModal(); };
         window.deleteRoom = async () => {
             if(confirm("Are you sure? This completely wipes the room.")) {
-                await remove(ref(db, `messages/${currentRoomId}`)); await remove(ref(db, `room_members/${currentRoomId}`)); await remove(ref(db, `rooms/${currentRoomId}`));
-                document.getElementById('admin-modal').classList.remove('active'); closeChatScreen();
+                try {
+                    const memSnap = await get(ref(db, `room_members/${currentRoomId}`));
+                    if(memSnap.exists()) {
+                        const members = memSnap.val();
+                        for(const uid of Object.keys(members)) {
+                            await remove(ref(db, `user_chats/${uid}/${currentRoomId}`));
+                        }
+                    }
+                    
+                    await remove(ref(db, `messages/${currentRoomId}`));
+                    await remove(ref(db, `room_members/${currentRoomId}`));
+                    await remove(ref(db, `typing/${currentRoomId}`));
+                    await remove(ref(db, `rooms/${currentRoomId}`));
+                    
+                    alert("Room Database-la irundhu mothama delete aagiduchu! 🗑️");
+                    document.getElementById('admin-modal').classList.remove('active'); 
+                    closeChatScreen();
+                } catch(error) {
+                    alert("Error deleting room: " + error.message);
+                    console.error("Delete Error:", error);
+                }
             }
         };
         function detachAll() { off(ref(db, 'rooms')); if(currentUser) off(ref(db, `user_chats/${currentUser.uid}`)); }
