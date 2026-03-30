@@ -9,7 +9,21 @@
     
     <meta name="title" content="sk secure Chat - Premium Secure Workspace">
     <meta name="theme-color" content="#000000">
-
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>sk secure chat - Free Private & Secure Online Chat</title>
+    <meta name="description" content="sk secure chat by sk creations. Join free, private, and secure workspaces to chat with your friends and team in real-time with audio and video calls.">
+    <meta name="keywords" content="sk secure chat, sk creations, secure private chat, free online chat room, video call chat app, web rtc chat">
+    <meta name="author" content="sk creations">
+    <meta name="robots" content="index, follow"> <meta property="og:title" content="sk secure chat - Premium Secure Workspace">
+    <meta property="og:description" content="Join sk secure chat by sk creations for real-time private messaging and video calls.">
+    <meta property="og:image" content="/chat.jpeg"> <meta property="og:type" content="website">
+    
+    <link rel="icon" type="image/x-icon" href="/chat.jpeg">
+    <meta name="theme-color" content="#000000">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #000000;       
@@ -23,8 +37,10 @@
             --text-muted: #6b7280;    
             --border-color: #e5e7eb;  
             --danger: #ef4444;        
+            --success: #10b981;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             --radius-md: 12px;
             --radius-lg: 16px;
             --transition: all 0.25s ease;
@@ -50,8 +66,9 @@
         .btn:disabled { background-color: #d1d5db; color: #9ca3af; cursor: not-allowed; }
         .btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
         .btn-danger { background-color: var(--danger); color: white; }
+        .btn-success { background-color: var(--success); color: white; }
 
-        .icon-btn { background: transparent; border: none; padding: 0.6rem; border-radius: 50%; cursor: pointer; color: var(--text-muted); transition: var(--transition); display: flex; align-items: center; justify-content: center; }
+        .icon-btn { background: transparent; border: none; padding: 0.6rem; border-radius: 50%; cursor: pointer; color: var(--text-muted); transition: var(--transition); display: flex; align-items: center; justify-content: center; position: relative;}
         .icon-btn:hover { background-color: var(--bg-body); color: var(--text-main); }
         .icon-btn svg { width: 22px; height: 22px; fill: currentColor; pointer-events: none; } 
 
@@ -160,19 +177,12 @@
         .gif-btn:hover { background: #e5e7eb; color: var(--text-main);}
         .send-btn svg, .mic-btn svg { width: 20px; height: 20px; fill: currentColor; pointer-events: none; } 
 
-        /* --- THE NEW RECORDING UI (WHATSAPP STYLE) --- */
         #recording-ui { flex: 1; display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 0.5rem 1rem; border-radius: 2rem; border: 1px solid var(--border-color); }
         .voice-wave { display: flex; align-items: center; gap: 2px; height: 20px; padding: 0 10px; flex: 1; justify-content: center;}
         .wave-bar { width: 3px; height: 5px; background-color: var(--danger); border-radius: 10px; animation: wave-pulse 1s ease-in-out infinite; transition: height 0.1s ease; }
-        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
-        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
-        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
-        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
-        .wave-bar:nth-child(6) { animation-delay: 0.5s; }
-        .wave-bar:nth-child(7) { animation-delay: 0.6s; }
-        .wave-bar:nth-child(8) { animation-delay: 0.7s; }
-        .wave-bar:nth-child(9) { animation-delay: 0.8s; }
-        .wave-bar:nth-child(10) { animation-delay: 0.9s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; } .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; } .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.5s; } .wave-bar:nth-child(7) { animation-delay: 0.6s; }
         @keyframes wave-pulse { 0%, 100% { height: 5px; } 50% { height: 18px; } }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 300; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; padding: 1rem; }
@@ -184,6 +194,30 @@
         .gif-item { width: 100%; border-radius: 8px; cursor: pointer; transition: 0.2s; }
         .gif-item:hover { transform: scale(1.05); }
 
+        /* --- Call System UI --- */
+        .call-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 12px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); display: none; flex-direction: column; width: 150px; z-index: 100; overflow: hidden; margin-top: 10px;}
+        .call-dropdown.active { display: flex; animation: slideDown 0.2s ease; }
+        .call-dropdown button { padding: 12px 15px; background: transparent; border: none; text-align: left; font-weight: 600; cursor: pointer; color: var(--text-main); transition: 0.2s; display:flex; align-items:center; gap:10px;}
+        .call-dropdown button:hover { background: var(--bg-hover); color: var(--accent); }
+
+        #incoming-call-modal .modal-container { background: #1f2937; color: white; text-align: center; max-width: 320px; }
+        .pulse-ring { width: 100px; height: 100px; border-radius: 50%; background: rgba(59, 130, 246, 0.5); margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; animation: ringPulse 1.5s infinite; }
+        @keyframes ringPulse { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
+
+        #active-call-screen { position: fixed; inset: 0; background: #000; z-index: 500; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        #active-call-screen.active { opacity: 1; pointer-events: all; }
+        .call-videos { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; background: #111; overflow: hidden;}
+        #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
+        #localVideo { position: absolute; bottom: 20px; right: 20px; width: 100px; height: 150px; object-fit: cover; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.5); background:#333;}
+        
+        /* FIX: Added z-index: 20 here to keep buttons visible during audio calls */
+        .call-controls-bar { padding: 20px; display: flex; justify-content: center; gap: 20px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); position: absolute; bottom: 0; width: 100%; z-index: 20; }
+        .call-action-btn { width: 60px; height: 60px; border-radius: 50%; border: none; color: white; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;}
+        .call-action-btn:hover { transform: scale(1.1); }
+        .audio-avatar-mode { position: absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#1f2937; z-index: 10; display:none;}
+        .audio-avatar-mode.active { display:flex; }
+        .audio-avatar-mode img { width:150px; height:150px; border-radius:50%; border:4px solid var(--accent); margin-bottom: 20px; animation: ringPulse 2s infinite;}
+
         @media (max-width: 768px) {
             #top-navbar { display: none !important; }
             #mobile-bottom-nav { display: flex !important; }
@@ -192,6 +226,7 @@
             .chat-header { padding: 0 1rem; }
             .chat-body { padding: 1rem; }
             .chat-footer { padding: 0.75rem 1rem; }
+            #localVideo { width: 90px; height: 130px; bottom: 90px; right: 15px;}
         }
     </style>
 </head>
@@ -210,7 +245,7 @@
 
     <nav id="top-navbar" class="hidden">
         <div class="nav-brand">
-            <svg viewBox="0 0 24 24" style="width:28px; fill:var(--primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg> sk pvt Chat
+            <svg viewBox="0 0 24 24" style="width:28px; fill:var(--primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg> secure Chat
         </div>
         <div class="top-nav-links">
             <div class="top-nav-item active" onclick="switchTab('home', this)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> Home</div>
@@ -292,7 +327,16 @@
                     <span id="chat-header-id" class="copyable-id" onclick="copyRoomId()" title="Tap to copy">ID: ...</span>
                 </div>
             </div>
-            <div style="display:flex; gap:0.5rem;">
+            <div style="display:flex; gap:0.5rem; position:relative;">
+                
+                <div style="position:relative;">
+                    <button class="icon-btn" onclick="toggleCallDropdown()" style="background: var(--bg-hover);" title="Call">📞</button>
+                    <div id="call-dropdown" class="call-dropdown">
+                        <button onclick="initiateCall('audio')">🎧 Audio Call</button>
+                        <button onclick="initiateCall('video')">📹 Video Call</button>
+                    </div>
+                </div>
+
                 <button class="icon-btn" onclick="openWallpaperModal()" style="background: var(--bg-hover);" title="Change Background">🖼️</button>
                 <button id="admin-settings-btn" class="icon-btn hidden" onclick="openAdminModal()" style="background: var(--bg-hover);"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 C13.73,21.83,13.93,22,14.17,22h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg></button>
             </div>
@@ -325,7 +369,7 @@
                     <div class="wave-bar" style="background-color: var(--accent)"></div><div class="wave-bar" style="background-color: var(--accent)"></div>
                     <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
                 </div>
-                <span id="record-time" style="font-weight: 700; font-size: 0.9rem; color: var(--danger); min-width: 40px; text-align: center;">0:00</span>
+                <span id="record-time" style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">0:00</span>
                 <button type="button" onclick="sendVoiceMessage()" class="icon-btn" style="padding: 5px; color: var(--accent); font-size: 1.2rem;">🎙️</button>
             </div>
             
@@ -337,6 +381,36 @@
                 <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
             </button>
         </form>
+    </div>
+
+    <div id="incoming-call-modal" class="modal-overlay">
+        <div class="modal-container" style="background: #1f2937; color: white; text-align: center; max-width: 320px;">
+            <div class="pulse-ring">
+                <img id="incoming-caller-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">
+            </div>
+            <h3 id="incoming-caller-name" style="margin-bottom: 5px;">Someone</h3>
+            <p id="incoming-call-type" style="color: #9ca3af; margin-bottom: 25px;">Incoming Video Call...</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="call-action-btn" style="background: var(--danger);" onclick="hangupCall()">✖</button>
+                <button class="call-action-btn" style="background: var(--success); animation: pulse 1s infinite;" onclick="answerCall()">📞</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="active-call-screen">
+        <div class="call-videos">
+            <div id="audio-avatar-mode" class="audio-avatar-mode">
+                <img id="call-remote-avatar" src="https://via.placeholder.com/150">
+                <h2 id="call-status-text" style="color:white; font-weight:600;">Connecting...</h2>
+            </div>
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+        <div class="call-controls-bar">
+            <button class="call-action-btn" style="background: rgba(255,255,255,0.2);" onclick="toggleMic()" id="call-mic-btn">🎤</button>
+            <button class="call-action-btn" style="background: rgba(255,255,255,0.2);" onclick="toggleCam()" id="call-cam-btn">📹</button>
+            <button class="call-action-btn" style="background: var(--danger);" onclick="hangupCall()">✖</button>
+        </div>
     </div>
 
     <div id="admin-modal" class="modal-overlay">
@@ -377,9 +451,9 @@
                 <button class="icon-btn" onclick="document.getElementById('wallpaper-modal').classList.remove('active')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
             </div>
             <div class="gif-grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
-                <img src="https://i.pinimg.com/474x/7d/8b/0b/7d8b0baf8368be4aa18d5d72d6503383.jpg" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS58lR9iyBhca-qNp4qnAE1hKw_C0ExQLdTkw&s" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuFqWWkCJQ8rKKrdRwzl8OnoUw57ysosWCkA&s" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://images.unsplash.com/photo-1553095066-5014bc7b7f2d?w=300" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://images.unsplash.com/photo-1511300636408-a63a89df3482?w=300" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://images.unsplash.com/photo-1502899576159-f224dc2349fa?w=300" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
                 <div style="background:var(--bg-body); display:flex; justify-content:center; align-items:center; height:120px; border-radius:8px; cursor:pointer;" onclick="setWallpaper('')">Remove BG</div>
             </div>
         </div>
@@ -388,7 +462,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getDatabase, ref, set, get, push, onValue, remove, off, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, set, get, push, onValue, remove, off, update, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD4FPU1uapSWjbpyR1Jjf854T7V4qMV-TM",
@@ -412,13 +486,23 @@
         let replyingTo = null;
         let longPressTimer;
 
-        // Voice
+        // Voice Recording Variables
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
         let recordTimerInterval;
         let recordSeconds = 0;
-        window.waveAnimationInterval = null; // New wave interval variable
+        window.waveAnimationInterval = null; 
+
+        // Call System Variables
+        const rtcServers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+        let peerConnection;
+        let localStream;
+        let remoteStream;
+        let isAudioMuted = false;
+        let isVideoMuted = false;
+        let activeCallType = 'video';
+        let incomingCallListener = null;
 
         window.toggleAccordion = (containerId, btnElement) => {
             const container = document.getElementById(containerId);
@@ -682,6 +766,21 @@
                             update(ref(db, `messages/${room.id}/${msgId}/seenBy`), { [currentUser.uid]: true });
                         }
 
+                        if (msg.type === 'call_invite') {
+                            htmlContent += `
+                                <div class="message-row ${isMe ? 'me' : 'other'}">
+                                    ${!isMe ? `<img src="${msg.senderImg}" class="msg-avatar">` : ''}
+                                    <div class="message-wrapper ${isMe ? 'me' : 'other'}">
+                                        <div class="message-bubble" style="background:var(--bg-surface); border:1px solid var(--accent); color:var(--text-main);">
+                                            <div style="font-weight:700; margin-bottom:5px;">${msg.callType === 'video' ? '📹' : '📞'} ${msg.callType.toUpperCase()} CALL STARTED</div>
+                                            <p style="font-size:0.8rem; margin-bottom:10px;">Click below to join the active call.</p>
+                                            <button class="btn btn-success" style="padding:6px 12px; font-size:0.85rem;" onclick="joinActiveCall('${msg.callType}')">Join Call</button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            return; 
+                        }
+
                         let replyHtml = '';
                         if(msg.replyTo) {
                             let rText = '';
@@ -747,7 +846,7 @@
                                             <span onclick="addReaction('${msgId}', '😁', event)">😁</span>
                                             <span onclick="addReaction('${msgId}', '🤧', event)">🤧</span>
                                             <span onclick="addReaction('${msgId}', '💖', event)">💖</span>
-                                            <span onclick="addReaction('${msgId}', '😻', event)">😻</span>
+                                            <span onclick="addReaction('${msgId}', '🤔', event)">🤔</span>
                                         </div>
                                     </div>
                                 </div>
@@ -785,6 +884,33 @@
                 } else { indicator.classList.add('hidden'); }
             });
             
+            if(incomingCallListener) off(ref(db, `calls/${room.id}/status`));
+            
+            incomingCallListener = onValue(ref(db, `calls/${room.id}/status`), snap => {
+                const callStatus = snap.val();
+                
+                if(!callStatus || callStatus.ended) {
+                    document.getElementById('incoming-call-modal').classList.remove('active');
+                    if(document.getElementById('active-call-screen').classList.contains('active')) {
+                        if(peerConnection) peerConnection.close();
+                        if(localStream) localStream.getTracks().forEach(t => t.stop());
+                        document.getElementById('active-call-screen').classList.remove('active');
+                        peerConnection = null; localStream = null;
+                    }
+                    return;
+                }
+
+                if(callStatus.isRinging && callStatus.callerId !== currentUser.uid) {
+                    document.getElementById('incoming-caller-name').innerText = callStatus.callerName;
+                    document.getElementById('incoming-caller-img').src = callStatus.callerImg;
+                    document.getElementById('incoming-call-type').innerText = `Incoming ${callStatus.type} Call...`;
+                    document.getElementById('incoming-call-modal').classList.add('active');
+                    activeCallType = callStatus.type;
+                } else {
+                    document.getElementById('incoming-call-modal').classList.remove('active');
+                }
+            });
+
             initSwipeToReply();
         };
 
@@ -943,6 +1069,7 @@
             document.getElementById('chat-interface').classList.remove('active');
             if(activeListeners['msg']) off(ref(db, `messages/${currentRoomId}`));
             if(activeListeners['typing']) off(ref(db, `typing/${currentRoomId}`));
+            if(incomingCallListener) off(ref(db, `calls/${currentRoomId}/status`));
             if(currentRoomId && currentUser) remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`));
             currentRoomId = null; cancelReply();
         };
@@ -1036,19 +1163,10 @@
                 recordSeconds = 0;
                 document.getElementById('record-time').innerText = "0:00";
                 
-                // Timer for seconds
                 recordTimerInterval = setInterval(() => {
                     recordSeconds++;
                     document.getElementById('record-time').innerText = formatTime(recordSeconds);
                 }, 1000);
-
-                // Animation for bars
-                window.waveAnimationInterval = setInterval(() => {
-                    document.querySelectorAll('.wave-bar').forEach(bar => {
-                        let randomHeight = Math.floor(Math.random() * 15) + 5;
-                        bar.style.height = randomHeight + 'px';
-                    });
-                }, 100);
 
                 if(navigator.vibrate) navigator.vibrate(50);
 
@@ -1058,7 +1176,6 @@
 
                 mediaRecorder.addEventListener("stop", async () => {
                     clearInterval(recordTimerInterval);
-                    clearInterval(window.waveAnimationInterval); // Clear the wave animation when stopped
                     stream.getTracks().forEach(track => track.stop());
                     resetChatUI();
 
@@ -1162,6 +1279,153 @@
             }
         };
         function detachAll() { off(ref(db, 'rooms')); if(currentUser) off(ref(db, `user_chats/${currentUser.uid}`)); }
+
+        // ==========================================
+        // CALLING LOGIC (WEBRTC + FIREBASE + TOTAL CUT)
+        // ==========================================
+
+        window.toggleCallDropdown = () => {
+            const drop = document.getElementById('call-dropdown');
+            drop.classList.toggle('active');
+            setTimeout(() => { document.addEventListener('click', () => drop.classList.remove('active'), {once:true}); }, 100);
+        };
+
+        window.initiateCall = async (type) => {
+            if(!currentRoomId) return;
+            activeCallType = type;
+            
+            await push(ref(db, `messages/${currentRoomId}`), {
+                text: "Started a call", type: 'call_invite', callType: type, senderId: currentUser.uid, senderImg: currentProfile.img, timestamp: Date.now()
+            });
+
+            await set(ref(db, `calls/${currentRoomId}/status`), {
+                isRinging: true, type: type, callerId: currentUser.uid, callerName: currentProfile.name, callerImg: currentProfile.img, ended: false
+            });
+
+            openCallScreenUI(type);
+            await setupWebRTC(true); 
+        };
+
+        window.answerCall = async () => {
+            document.getElementById('incoming-call-modal').classList.remove('active');
+            await update(ref(db, `calls/${currentRoomId}/status`), { isRinging: false });
+            openCallScreenUI(activeCallType);
+            await setupWebRTC(false); 
+        };
+
+        window.joinActiveCall = async (type) => {
+            activeCallType = type;
+            openCallScreenUI(type);
+            await setupWebRTC(false); 
+        };
+
+        window.hangupCall = async () => {
+            await update(ref(db, `calls/${currentRoomId}/status`), { ended: true });
+
+            if(peerConnection) peerConnection.close();
+            if(localStream) localStream.getTracks().forEach(track => track.stop());
+            document.getElementById('active-call-screen').classList.remove('active');
+            peerConnection = null; localStream = null;
+
+            setTimeout(async () => { await remove(ref(db, `calls/${currentRoomId}`)); }, 2000);
+
+            off(ref(db, `calls/${currentRoomId}/answer`));
+            off(ref(db, `calls/${currentRoomId}/calleeCandidates`));
+            off(ref(db, `calls/${currentRoomId}/callerCandidates`));
+        };
+
+        async function setupWebRTC(isCaller) {
+            const constraints = { audio: true, video: activeCallType === 'video' };
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                document.getElementById('localVideo').srcObject = localStream;
+            } catch (e) {
+                alert("Please allow Camera/Microphone access!"); hangupCall(); return;
+            }
+
+            peerConnection = new RTCPeerConnection(rtcServers);
+            remoteStream = new MediaStream();
+            document.getElementById('remoteVideo').srcObject = remoteStream;
+
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ontrack = event => {
+                event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+                document.getElementById('call-status-text').innerText = "Connected";
+            };
+
+            peerConnection.onicecandidate = event => {
+                if (event.candidate) {
+                    const node = isCaller ? 'callerCandidates' : 'calleeCandidates';
+                    push(ref(db, `calls/${currentRoomId}/${node}`), event.candidate.toJSON());
+                }
+            };
+
+            if (isCaller) {
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                await set(ref(db, `calls/${currentRoomId}/offer`), { type: offer.type, sdp: offer.sdp });
+
+                onValue(ref(db, `calls/${currentRoomId}/answer`), snap => {
+                    const data = snap.val();
+                    if (!peerConnection.currentRemoteDescription && data) {
+                        peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+                    }
+                });
+
+                onChildAdded(ref(db, `calls/${currentRoomId}/calleeCandidates`), snap => {
+                    if (snap.val()) peerConnection.addIceCandidate(new RTCIceCandidate(snap.val()));
+                });
+
+            } else {
+                const offerSnap = await get(ref(db, `calls/${currentRoomId}/offer`));
+                if (offerSnap.exists()) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(offerSnap.val()));
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    await set(ref(db, `calls/${currentRoomId}/answer`), { type: answer.type, sdp: answer.sdp });
+
+                    onChildAdded(ref(db, `calls/${currentRoomId}/callerCandidates`), snap => {
+                        if (snap.val()) peerConnection.addIceCandidate(new RTCIceCandidate(snap.val()));
+                    });
+                } else {
+                    alert("Call might have ended."); hangupCall();
+                }
+            }
+        }
+
+        function openCallScreenUI(type) {
+            document.getElementById('active-call-screen').classList.add('active');
+            const audioModeDiv = document.getElementById('audio-avatar-mode');
+            const camBtn = document.getElementById('call-cam-btn');
+            
+            document.getElementById('call-status-text').innerText = "Connecting...";
+
+            if (type === 'audio') {
+                audioModeDiv.classList.add('active');
+                camBtn.style.display = 'none'; 
+                document.getElementById('call-remote-avatar').src = document.getElementById('chat-header-img').src;
+            } else {
+                audioModeDiv.classList.remove('active');
+                camBtn.style.display = 'block';
+            }
+        }
+
+        window.toggleMic = () => {
+            isAudioMuted = !isAudioMuted;
+            localStream.getAudioTracks()[0].enabled = !isAudioMuted;
+            document.getElementById('call-mic-btn').innerText = isAudioMuted ? '🔇' : '🎤';
+            document.getElementById('call-mic-btn').style.background = isAudioMuted ? 'var(--danger)' : 'rgba(255,255,255,0.2)';
+        };
+
+        window.toggleCam = () => {
+            if(activeCallType === 'audio') return;
+            isVideoMuted = !isVideoMuted;
+            localStream.getVideoTracks()[0].enabled = !isVideoMuted;
+            document.getElementById('call-cam-btn').innerText = isVideoMuted ? '🚫' : '📹';
+            document.getElementById('call-cam-btn').style.background = isVideoMuted ? 'var(--danger)' : 'rgba(255,255,255,0.2)';
+        };
+
     </script>
 </body>
 </html>
