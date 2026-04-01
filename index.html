@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SK Secure Chat - Ultimate Edition</title>
-    <link rel="icon" type="image/x-icon" href="/chat.jpeg">
+    <link rel="icon" type="image/x-icon" href="chat.jpeg">
     <meta name="theme-color" content="#000000">
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1442,6 +1442,21 @@
                 <p>Connect with teams or individuals.</p>
             </div>
 
+            <button class="tap-action-btn" onclick="toggleAccordion('direct-chat-container', this)">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size: 1.5rem;">👤</span> Direct Chat via Number
+                </div>
+                <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+            </button>
+            
+            <div id="direct-chat-container" class="collapsible-form">
+                <div class="input-group">
+                    <label>Contact Number</label>
+                    <input type="number" id="direct-chat-number" placeholder="Enter 10-digit number">
+                </div>
+                <button class="btn" style="background:var(--accent);" onclick="startDirectChat()">Start Chat</button>
+            </div>
+
             <button class="tap-action-btn" onclick="toggleAccordion('join-room-container', this)">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <span style="font-size: 1.5rem;">🤝</span> Join a Workspace
@@ -1599,20 +1614,6 @@
             </div>
         </div>
 
-        <div id="view-admin-feedbacks" class="view-section">
-            <div class="page-header" style="display: flex; align-items: center; gap: 15px;">
-                <button class="icon-btn" onclick="switchTab('profile', null, true)" style="background: var(--bg-surface); box-shadow: var(--shadow-sm);">
-                    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                </button>
-                <div>
-                    <h1 style="margin: 0;">User Feedbacks</h1>
-                    <p style="margin: 0;">Read all reviews and ratings.</p>
-                </div>
-            </div>
-            
-            <div id="admin-feedback-list" style="margin-top: 2rem; padding-bottom: 80px;"></div>
-        </div>
-
         <div id="view-profile" class="view-section">
             <div class="page-header">
                 <h1>My Profile</h1>
@@ -1640,8 +1641,6 @@
                 <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
                     <button class="btn" onclick="saveProfile()">Save Changes</button>
                     <button class="btn btn-outline" style="border-color: #10b981; color: #10b981;" onclick="requestPushPermission()">🔔 Enable Notifications</button>
-                    
-                    
                     <button class="btn btn-danger" onclick="logout()">Sign Out</button>
                 </div>
             </div>
@@ -1842,9 +1841,9 @@
                 </button>
             </div>
             <div class="gif-grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
-                <img src="https://images.unsplash.com/photo-1553095066-5014bc7b7f2d?w=300" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
-                <img src="https://images.unsplash.com/photo-1511300636408-a63a89df3482?w=300" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
-                <img src="https://images.unsplash.com/photo-1502899576159-f224dc2349fa?w=300" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://external-preview.redd.it/got-bored-made-some-security-focused-chat-backgrounds-v0-tGqyYypz281IbaiOKNG_ru6lvTze1HhAYYXCRpw9CO8.jpg?width=1080&crop=smart&auto=webp&s=d843efa2e978376f1138aab01d5dc92afa9e3ada" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://www.shutterstock.com/image-vector/social-media-sketch-vector-seamless-600nw-1660950727.jpg" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
+                <img src="https://t3.ftcdn.net/jpg/17/22/39/96/360_F_1722399617_CZisd8RhP8Hm77t3sNDRxen8JomcZLLM.jpg" class="gif-item" style="height:120px; object-fit:cover;" onclick="setWallpaper(this.src)">
                 <div style="background:var(--bg-body); display:flex; justify-content:center; align-items:center; height:120px; border-radius:8px; cursor:pointer;" onclick="setWallpaper('')">Remove BG</div>
             </div>
         </div>
@@ -1893,7 +1892,7 @@
         let replyingTo = null; 
         let typingTimeout = null; 
         let longPressTimer;
-        let currentReplyData = null; // Used for Admin Reply
+        let currentReplyData = null; 
 
         // Voice Recording State
         let mediaRecorder; 
@@ -1902,7 +1901,7 @@
         let recordTimerInterval; 
         let recordSeconds = 0; 
 
-        // WebRTC Calling State - UPDATED STUN SERVERS FOR BETTER PC TO MOBILE CONNECTION
+        // WebRTC Calling State 
         const rtcServers = { 
             iceServers: [
                 { urls: 'stun:stun1.l.google.com:19302' },
@@ -1954,7 +1953,7 @@
             ringtone.currentTime = 0;
         }
 
-        // --- 4. DIALER PAD ENGINE ---
+        // --- 4. DIRECT CHAT & DIALER PAD ENGINE ---
         let dialedNumber = '';
         const displayEl = document.getElementById('dialer-display');
         
@@ -1970,18 +1969,14 @@
             displayEl.innerText = dialedNumber;
         };
 
-        window.processDial = async (actionType) => {
-            if(dialedNumber.length !== 10) {
-                return alert("Please enter a full 10-digit number!");
-            }
-            if(dialedNumber === currentProfile.contactNo) {
-                return alert("Bro, you cannot call yourself!");
-            }
+        // NEW: Function to start Direct Chat via Number from Workspace
+        window.startDirectChat = async () => {
+            const num = document.getElementById('direct-chat-number').value.trim();
+            if(num.length !== 10) return alert("Please enter a valid 10-digit number!");
+            if(num === currentProfile.contactNo) return alert("Bro, you cannot chat with yourself!");
 
-            const contactSnap = await get(ref(db, `user_contacts/${dialedNumber}`));
-            if(!contactSnap.exists()) {
-                return alert("Number not found in database!");
-            }
+            const contactSnap = await get(ref(db, `user_contacts/${num}`));
+            if(!contactSnap.exists()) return alert("Number not found in database!");
 
             const targetUid = contactSnap.val();
             const roomId = [currentUser.uid, targetUid].sort().join('_');
@@ -1993,6 +1988,32 @@
                     type: 'direct', 
                     users: { [currentUser.uid]: true, [targetUid]: true } 
                 });
+                await set(ref(db, `user_chats/${currentUser.uid}/${roomId}`), { joinedAt: Date.now() });
+                await set(ref(db, `user_chats/${targetUid}/${roomId}`), { joinedAt: Date.now() });
+            }
+            
+            const rData = (await get(ref(db, `rooms/${roomId}`))).val();
+            
+            // Clean up UI and Open Chat
+            document.getElementById('direct-chat-number').value = '';
+            toggleAccordion('direct-chat-container', document.querySelectorAll('.tap-action-btn')[0]);
+            openChatScreen(rData);
+        };
+
+        // Dialer Process
+        window.processDial = async (actionType) => {
+            if(dialedNumber.length !== 10) return alert("Please enter a full 10-digit number!");
+            if(dialedNumber === currentProfile.contactNo) return alert("Bro, you cannot call yourself!");
+
+            const contactSnap = await get(ref(db, `user_contacts/${dialedNumber}`));
+            if(!contactSnap.exists()) return alert("Number not found in database!");
+
+            const targetUid = contactSnap.val();
+            const roomId = [currentUser.uid, targetUid].sort().join('_');
+
+            const roomSnap = await get(ref(db, `rooms/${roomId}`));
+            if(!roomSnap.exists()) {
+                await set(ref(db, `rooms/${roomId}`), { id: roomId, type: 'direct', users: { [currentUser.uid]: true, [targetUid]: true } });
                 await set(ref(db, `user_chats/${currentUser.uid}/${roomId}`), { joinedAt: Date.now() });
                 await set(ref(db, `user_chats/${targetUid}/${roomId}`), { joinedAt: Date.now() });
             }
@@ -2023,23 +2044,16 @@
 
         window.switchTab = (tab, el, isMobile = false) => {
             document.querySelectorAll('.mobile-nav-item, .top-nav-item').forEach(n => n.classList.remove('active'));
-            
-            if(el) {
-                el.classList.add('active');
-            }
+            if(el) el.classList.add('active');
             
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            
             const targetView = document.getElementById('view-' + tab);
-            if(targetView) {
-                targetView.classList.add('active');
-            }
+            if(targetView) targetView.classList.add('active');
             
             if(tab === 'dialer') { 
                 dialedNumber = ''; 
                 displayEl.innerText = ''; 
             }
-            
             if(document.getElementById('chat-interface').classList.contains('active')) {
                 closeChatScreen();
             }
@@ -2048,7 +2062,6 @@
         window.switchChatSubTab = (type) => {
             document.getElementById('tab-rooms-btn').classList.remove('active'); 
             document.getElementById('tab-individual-btn').classList.remove('active');
-            
             document.getElementById('list-rooms-container').classList.add('hidden'); 
             document.getElementById('list-individual-container').classList.add('hidden');
             
@@ -2062,11 +2075,8 @@
         };
 
         window.validateForm = (type) => {
-            if(type === 'join') {
-                document.getElementById('btn-join').disabled = document.getElementById('join-room-id').value.trim() === '';
-            } else if (type === 'create') {
-                document.getElementById('btn-create').disabled = document.getElementById('new-room-name').value.trim() === '';
-            }
+            if(type === 'join') document.getElementById('btn-join').disabled = document.getElementById('join-room-id').value.trim() === '';
+            else if (type === 'create') document.getElementById('btn-create').disabled = document.getElementById('new-room-name').value.trim() === '';
         };
 
         // --- 6. AUTHENTICATION LOGIC ---
@@ -2093,12 +2103,8 @@
             e.preventDefault(); 
             const email = document.getElementById('login-email').value; 
             const pass = document.getElementById('login-pass').value;
-            
-            try { 
-                await signInWithEmailAndPassword(auth, email, pass); 
-            } catch(err) { 
-                alert(err.message.replace("Firebase: ", "")); 
-            }
+            try { await signInWithEmailAndPassword(auth, email, pass); } 
+            catch(err) { alert(err.message.replace("Firebase: ", "")); }
         });
 
         document.getElementById('signup-form').addEventListener('submit', async (e) => { 
@@ -2116,11 +2122,8 @@
                     img: "https://ui-avatars.com/api/?name=" + name + "&background=random", 
                     contactNo: newNumber 
                 });
-                
                 await set(ref(db, `user_contacts/${newNumber}`), cred.user.uid);
-            } catch(err) { 
-                alert(err.message.replace("Firebase: ", "")); 
-            }
+            } catch(err) { alert(err.message.replace("Firebase: ", "")); }
         });
 
         window.logout = () => signOut(auth);
@@ -2133,14 +2136,11 @@
                 document.getElementById('top-navbar').classList.remove('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
                 
-                if("Notification" in window) {
-                    Notification.requestPermission();
-                }
+                if("Notification" in window) Notification.requestPermission();
                 
                 const snap = await get(ref(db, `users/${currentUser.uid}`));
                 if(snap.exists()) {
                     currentProfile = snap.val();
-                    
                     if(!currentProfile.contactNo) {
                         const newNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
                         currentProfile.contactNo = newNum;
@@ -2169,10 +2169,8 @@
         window.saveProfile = async () => {
             const name = document.getElementById('profile-name').value;
             const img = document.getElementById('profile-img-url').value;
-            
             currentProfile.name = name; 
             currentProfile.img = img;
-            
             await update(ref(db, `users/${currentUser.uid}`), { name, img });
             alert("Profile Updated Successfully!"); 
         };
@@ -2184,9 +2182,7 @@
             const text = document.getElementById('fb-text').value; 
             const ratingInput = document.querySelector('input[name="rating"]:checked');
             
-            if(!ratingInput) {
-                return alert("Please select a star rating!");
-            }
+            if(!ratingInput) return alert("Please select a star rating!");
             
             try {
                 await push(ref(db, 'feedbacks'), { 
@@ -2200,18 +2196,10 @@
                 
                 alert("Thank you for your feedback! 💖"); 
                 document.getElementById('feedback-form').reset();
-                
-                if(currentUser) {
-                    document.getElementById('fb-email').value = currentUser.email;
-                }
-                if(currentProfile) {
-                    document.getElementById('fb-name').value = currentProfile.name;
-                }
-                
+                if(currentUser) document.getElementById('fb-email').value = currentUser.email;
+                if(currentProfile) document.getElementById('fb-name').value = currentProfile.name;
                 switchTab('home');
-            } catch(err) { 
-                alert("Error submitting feedback: " + err.message); 
-            }
+            } catch(err) { alert("Error submitting feedback: " + err.message); }
         };
 
         // --- 8. ADMIN: FEEDBACK VIEWER & REPLY SYSTEM ---
@@ -2227,17 +2215,11 @@
                 if(snap.exists()) {
                     let html = '';
                     const feedbackArray = [];
-                    
-                    snap.forEach(child => { 
-                        feedbackArray.push({ id: child.key, ...child.val() }); 
-                    });
-                    
+                    snap.forEach(child => { feedbackArray.push({ id: child.key, ...child.val() }); });
                     feedbackArray.reverse(); 
 
                     feedbackArray.forEach(fb => {
-                        const date = new Date(fb.timestamp).toLocaleString('en-IN', { 
-                            day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' 
-                        });
+                        const date = new Date(fb.timestamp).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
                         const ratingNum = parseInt(fb.rating) || 0;
                         const stars = '★'.repeat(ratingNum) + '☆'.repeat(5 - ratingNum);
                         
@@ -2255,7 +2237,6 @@
                                     <span style="font-size: 0.7rem; color: var(--text-muted);">🕒 ${date}</span>
                                     <div style="display:flex; gap:10px;">
                                         <button class="btn btn-danger" style="width:auto; padding: 6px 12px; font-size:0.8rem;" onclick="deleteFeedback('${fb.id}')">Delete</button>
-                                        <button class="btn" style="width:auto; padding: 6px 12px; font-size:0.8rem;" onclick="openAdminReplyModal('${fb.uid}', '${fb.name}')">Reply</button>
                                     </div>
                                 </div>
                             </div>
@@ -2263,11 +2244,7 @@
                     });
                     list.innerHTML = html;
                 } else {
-                    list.innerHTML = `
-                        <div style="text-align: center; padding: 3rem 1rem; border: 1px dashed var(--border-color); border-radius: var(--radius-lg);">
-                            <p style="color: var(--text-muted); font-weight: 500;">No feedbacks yet.</p>
-                        </div>
-                    `;
+                    list.innerHTML = `<div style="text-align: center; padding: 3rem 1rem; border: 1px dashed var(--border-color); border-radius: var(--radius-lg);"><p style="color: var(--text-muted); font-weight: 500;">No feedbacks yet.</p></div>`;
                 }
             });
         };
@@ -2276,58 +2253,6 @@
             if(confirm("Are you sure you want to delete this?")) {
                 remove(ref(db, `feedbacks/${id}`));
                 document.getElementById(`fb-${id}`).remove();
-            }
-        };
-
-        window.openAdminReplyModal = (uid, name) => {
-            if(uid === 'anonymous') {
-                return alert("Cannot reply to anonymous users.");
-            }
-            
-            currentReplyData = { uid, name };
-            document.getElementById('replyTitle').innerText = `Reply to ${name}`;
-            document.getElementById('replyModal').classList.add('active');
-        };
-
-        window.closeReplyModal = () => {
-            document.getElementById('replyModal').classList.remove('active');
-            document.getElementById('replyText').value = '';
-        };
-
-        document.getElementById('confirmReplyBtn').onclick = async () => {
-            const text = document.getElementById('replyText').value.trim();
-            if(!text) {
-                return alert("Please type something!");
-            }
-            
-            const userUid = currentReplyData.uid;
-            const roomId = "REPLY_" + userUid; 
-            
-            try {
-                await set(ref(db, `rooms/${roomId}`), { 
-                    id: roomId, 
-                    name: "Support Reply", 
-                    icon: "https://cdn-icons-png.flaticon.com/512/681/681494.png", 
-                    type: "private", 
-                    adminId: "ADMIN" 
-                });
-                
-                await set(ref(db, `room_members/${roomId}/${userUid}`), { role: 'member' });
-                await set(ref(db, `user_chats/${userUid}/${roomId}`), { joinedAt: Date.now() });
-                
-                await push(ref(db, `messages/${roomId}`), { 
-                    text: text, 
-                    type: 'text', 
-                    senderId: "ADMIN", 
-                    senderName: "Support Team", 
-                    senderImg: "https://ui-avatars.com/api/?name=Admin&background=000&color=fff", 
-                    timestamp: Date.now() 
-                });
-
-                alert("Reply sent to user's chat successfully!");
-                closeReplyModal();
-            } catch (e) { 
-                alert("Error: " + e.message); 
             }
         };
 
@@ -2340,15 +2265,7 @@
             
             const newRoomRef = push(ref(db, 'rooms')); 
             const roomId = newRoomRef.key;
-            
-            const roomData = { 
-                id: roomId, 
-                name, 
-                icon, 
-                type, 
-                pass, 
-                adminId: currentUser.uid 
-            };
+            const roomData = { id: roomId, name, icon, type, pass, adminId: currentUser.uid };
             
             await set(newRoomRef, roomData);
             await set(ref(db, `room_members/${roomId}/${currentUser.uid}`), { role: 'admin' });
@@ -2356,15 +2273,13 @@
             
             document.getElementById('new-room-name').value = ''; 
             document.getElementById('btn-create').disabled = true;
-            
-            toggleAccordion('create-room-container', document.querySelectorAll('.tap-action-btn')[1]);
+            toggleAccordion('create-room-container', document.querySelectorAll('.tap-action-btn')[2]);
             openChatScreen(roomData); 
         };
 
         window.joinRoom = async (forcedId = null) => {
             const roomId = forcedId || document.getElementById('join-room-id').value.trim();
             const pass = document.getElementById('join-room-pass').value;
-            
             if(!roomId) return;
             
             const roomSnap = await get(ref(db, `rooms/${roomId}`));
@@ -2387,7 +2302,6 @@
             document.getElementById('join-room-id').value = ''; 
             document.getElementById('btn-join').disabled = true;
             document.getElementById('join-room-container').classList.remove('active');
-            
             openChatScreen(roomData);
         };
 
@@ -2416,10 +2330,7 @@
                         } 
                     }); 
                 }
-                
-                if(!hasPublic) {
-                    list.innerHTML = '<p class="text-center" style="font-size:0.9rem;">No public rooms found.</p>';
-                }
+                if(!hasPublic) list.innerHTML = '<p class="text-center" style="font-size:0.9rem;">No public rooms found.</p>';
             });
         }
 
@@ -2427,12 +2338,8 @@
             onValue(ref(db, `user_chats/${currentUser.uid}`), async (snap) => {
                 const roomsList = document.getElementById('list-rooms-container'); 
                 const directList = document.getElementById('my-direct-chats-list');
-                
-                roomsList.innerHTML = ''; 
-                directList.innerHTML = ''; 
-                
-                let hasRooms = false; 
-                let hasDirect = false;
+                roomsList.innerHTML = ''; directList.innerHTML = ''; 
+                let hasRooms = false; let hasDirect = false;
 
                 if(snap.exists()) {
                     for(const roomId of Object.keys(snap.val())) {
@@ -2471,13 +2378,13 @@
                                 `;
                             }
                             
-                            // --- GLOBAL INCOMING CALL LISTENER WITH AUDIO RINGTONE ---
+                            // --- GLOBAL INCOMING CALL LISTENER ---
                             onValue(ref(db, `calls/${roomId}/status`), callSnap => {
                                 const callStatus = callSnap.val();
                                 
                                 if(!callStatus || callStatus.ended) {
                                     document.getElementById('incoming-call-modal').classList.remove('active');
-                                    stopRingtone(); // Stop audio if call ends
+                                    stopRingtone();
                                     return;
                                 }
                                 
@@ -2492,7 +2399,7 @@
                                     
                                     document.getElementById('incoming-call-modal').classList.add('active');
                                     
-                                    playRingtone(); // Play Ringing Sound
+                                    playRingtone(); 
                                     sendPushNotification(`📞 Incoming ${callStatus.type} call`, `${callStatus.callerName} is calling you!`);
                                 }
                             });
@@ -2500,11 +2407,7 @@
                             onValue(ref(db, `messages/${roomId}`), msgSnap => {
                                 if(!msgSnap.exists()) return;
                                 let lastMsg = null;
-                                
-                                msgSnap.forEach(c => { 
-                                    lastMsg = c.val(); 
-                                });
-                                
+                                msgSnap.forEach(c => { lastMsg = c.val(); });
                                 if(lastMsg && lastMsg.senderId !== currentUser.uid && currentRoomId !== roomId) {
                                     sendPushNotification(`💬 New message from ${lastMsg.senderName}`, lastMsg.type === 'text' ? lastMsg.text : 'Media sent');
                                 }
@@ -2516,12 +2419,8 @@
                     }
                 }
                 
-                if(!hasRooms) {
-                    roomsList.innerHTML = '<p class="text-center" style="font-size:0.9rem; color:var(--text-muted); margin-top:20px;">No group rooms yet.</p>';
-                }
-                if(!hasDirect) {
-                    directList.innerHTML = '<p class="text-center" style="font-size:0.9rem; color:var(--text-muted); margin-top:20px;">No individual chats yet. Use Dialer to connect!</p>';
-                }
+                if(!hasRooms) roomsList.innerHTML = '<p class="text-center" style="font-size:0.9rem; color:var(--text-muted); margin-top:20px;">No group rooms yet.</p>';
+                if(!hasDirect) directList.innerHTML = '<p class="text-center" style="font-size:0.9rem; color:var(--text-muted); margin-top:20px;">No individual chats yet. Use Dialer to connect!</p>';
             });
         }
 
@@ -2531,28 +2430,13 @@
                 const idText = document.getElementById('chat-header-id').innerText.replace('ID: ', '').replace('No: ', ''); 
                 navigator.clipboard.writeText(idText).then(() => { 
                     const idSpan = document.getElementById('chat-header-id'); 
-                    const originalText = idSpan.innerText; 
-                    
-                    idSpan.innerText = "✓ Copied!"; 
-                    
-                    setTimeout(() => {
-                        idSpan.innerText = originalText;
-                    }, 1500); 
+                    const originalText = idSpan.innerText; idSpan.innerText = "✓ Copied!"; setTimeout(() => idSpan.innerText = originalText, 1500); 
                 }); 
             } 
         };
 
-        window.openWallpaperModal = () => {
-            document.getElementById('wallpaper-modal').classList.add('active');
-        };
-        
-        window.setWallpaper = (url) => { 
-            if(currentRoomId) { 
-                localStorage.setItem(`chat_bg_${currentRoomId}`, url); 
-                applyBackground(currentRoomId); 
-            } 
-            document.getElementById('wallpaper-modal').classList.remove('active'); 
-        };
+        window.openWallpaperModal = () => document.getElementById('wallpaper-modal').classList.add('active');
+        window.setWallpaper = (url) => { if(currentRoomId) { localStorage.setItem(`chat_bg_${currentRoomId}`, url); applyBackground(currentRoomId); } document.getElementById('wallpaper-modal').classList.remove('active'); };
         
         function applyBackground(roomId) { 
             const savedBg = localStorage.getItem(`chat_bg_${roomId}`); 
@@ -2563,13 +2447,11 @@
         window.openChatScreen = async (room) => {
             currentRoomId = room.id; 
             let isFirstLoad = true; 
-            
             document.getElementById('chat-interface').classList.add('active');
             
             if(room.type === 'direct') {
                 const otherUid = Object.keys(room.users).find(id => id !== currentUser.uid);
                 const otherUser = (await get(ref(db, `users/${otherUid}`))).val();
-                
                 document.getElementById('chat-header-name').innerText = otherUser.name;
                 document.getElementById('chat-header-id').innerText = `No: ${otherUser.contactNo}`;
                 document.getElementById('chat-header-img').src = otherUser.img;
@@ -2583,16 +2465,10 @@
                 document.getElementById('admin-settings-btn').classList[currentUser.uid === room.adminId ? 'remove' : 'add']('hidden');
             }
             
-            resetChatUI(); 
-            applyBackground(room.id);
+            resetChatUI(); applyBackground(room.id);
 
             activeListeners['msg'] = onValue(ref(db, `messages/${room.id}`), snap => {
-                get(ref(db, `rooms/${room.id}`)).then(rsnap => { 
-                    if(!rsnap.exists()){ 
-                        alert("Chat was deleted."); 
-                        closeChatScreen(); 
-                    } 
-                });
+                get(ref(db, `rooms/${room.id}`)).then(rsnap => { if(!rsnap.exists()){ alert("Chat was deleted."); closeChatScreen(); } });
                 
                 const box = document.getElementById('chat-messages');
                 const currentScrollTop = box.scrollTop; 
@@ -2604,66 +2480,36 @@
                         const msgId = child.key; 
                         const msg = child.val(); 
                         const isMe = msg.senderId === currentUser.uid;
+                        const isAdminMsg = msg.senderId === "ADMIN"; 
                         
-                        const time = new Date(msg.timestamp).toLocaleTimeString([], { 
-                            hour: '2-digit', minute:'2-digit' 
-                        });
+                        const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
                         
-                        if (!isMe && (!msg.seenBy || !msg.seenBy[currentUser.uid])) {
-                            update(ref(db, `messages/${room.id}/${msgId}/seenBy`), { [currentUser.uid]: true });
-                        }
+                        if (!isMe && (!msg.seenBy || !msg.seenBy[currentUser.uid])) update(ref(db, `messages/${room.id}/${msgId}/seenBy`), { [currentUser.uid]: true });
 
                         if (msg.type === 'call_invite') {
-                            htmlContent += `
-                                <div class="message-row ${isMe ? 'me' : 'other'}">
-                                    ${!isMe ? `<img src="${msg.senderImg}" class="msg-avatar">` : ''}
-                                    <div class="message-wrapper ${isMe ? 'me' : 'other'}">
-                                        <div class="message-bubble" style="background:var(--bg-surface); border:1px solid var(--accent); color:var(--text-main);">
-                                            <div style="font-weight:700; margin-bottom:5px;">
-                                                ${msg.callType === 'video' ? '📹' : '📞'} ${msg.callType.toUpperCase()} CALL STARTED
-                                            </div>
-                                            <p style="font-size:0.8rem; margin-bottom:10px;">Click below to join.</p>
-                                            <button class="btn btn-success" style="padding:6px 12px; font-size:0.85rem;" onclick="joinActiveCall('${msg.callType}')">Join Call</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
+                            htmlContent += `<div class="message-row ${isMe ? 'me' : 'other'}">${!isMe ? `<img src="${msg.senderImg}" class="msg-avatar">` : ''}<div class="message-wrapper ${isMe ? 'me' : 'other'}"><div class="message-bubble" style="background:var(--bg-surface); border:1px solid var(--accent); color:var(--text-main);"><div style="font-weight:700; margin-bottom:5px;">${msg.callType === 'video' ? '📹' : '📞'} ${msg.callType.toUpperCase()} CALL STARTED</div><p style="font-size:0.8rem; margin-bottom:10px;">Click below to join.</p><button class="btn btn-success" style="padding:6px 12px; font-size:0.85rem;" onclick="joinActiveCall('${msg.callType}')">Join Call</button></div></div></div>`;
                             return; 
                         }
 
                         let replyHtml = '';
                         if(msg.replyTo) {
                             let rText = msg.replyTo.type === 'audio' ? '🎤 Voice Message' : (msg.replyTo.type === 'gif' || (msg.replyTo.text && msg.replyTo.text.includes('.gif')) ? '🖼️ GIF' : msg.replyTo.text.substring(0, 50) + (msg.replyTo.text.length > 50 ? '...' : ''));
-                            
-                            replyHtml = `
-                                <div class="quoted-msg">
-                                    <div class="quoted-sender">${msg.replyTo.senderName}</div>
-                                    ${rText}
-                                </div>
-                            `;
+                            replyHtml = `<div class="quoted-msg"><div class="quoted-sender">${msg.replyTo.senderName}</div>${rText}</div>`;
                         }
                         
                         let reactionsHtml = msg.reactions ? (Object.values(msg.reactions).length > 0 ? `<div class="reactions-display">${Object.values(msg.reactions).join('')}</div>` : '') : '';
-                        
-                        let parsedContent = msg.type === 'audio' 
-                            ? `<audio controls style="max-width: 210px; height: 35px; outline:none; border-radius: 20px;"><source src="${msg.text}" type="${msg.mimeType || 'audio/webm'}"></audio>` 
-                            : (msg.text.startsWith('http') && msg.text.includes('.gif') ? `<img src="${msg.text}" style="max-width:200px; border-radius:8px;">` : msg.text);
-                            
+                        let parsedContent = msg.type === 'audio' ? `<audio controls style="max-width: 210px; height: 35px; outline:none; border-radius: 20px;"><source src="${msg.text}" type="${msg.mimeType || 'audio/webm'}"></audio>` : (msg.text.startsWith('http') && msg.text.includes('.gif') ? `<img src="${msg.text}" style="max-width:200px; border-radius:8px;">` : msg.text);
                         let ticksHtml = isMe ? `<span class="msg-ticks ${(msg.seenBy ? Object.keys(msg.seenBy).length : 0) > 0 ? 'seen' : ''}">✓✓</span>` : '';
 
+                        // Admin messages block long press and interactions
+                        let interactions = isAdminMsg ? '' : `oncontextmenu="event.preventDefault(); toggleReactionPicker('${msgId}'); return false;" ontouchstart="startLongPress(event, '${msgId}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()" onmousedown="startLongPress(event, '${msgId}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"`;
+
                         htmlContent += `
-                            <div class="message-row ${isMe ? 'me' : 'other'}" data-msgid="${msgId}" data-sender="${msg.senderName}" data-text="${msg.text}" data-type="${msg.type || 'text'}">
+                            <div class="message-row ${isMe ? 'me' : 'other'}" data-msgid="${msgId}" data-sender="${msg.senderName}" data-text="${msg.text}" data-type="${msg.type || 'text'}" data-isadmin="${isAdminMsg}">
                                 ${!isMe ? `<img src="${msg.senderImg || 'https://via.placeholder.com/100'}" class="msg-avatar">` : ''}
                                 <div class="message-wrapper ${isMe ? 'me' : 'other'}">
                                     ${!isMe && room.type !== 'direct' ? `<div class="sender-name">${msg.senderName}</div>` : ''}
-                                    <div class="message-bubble" 
-                                         oncontextmenu="event.preventDefault(); toggleReactionPicker('${msgId}'); return false;" 
-                                         ontouchstart="startLongPress(event, '${msgId}')" 
-                                         ontouchend="cancelLongPress()" 
-                                         ontouchmove="cancelLongPress()" 
-                                         onmousedown="startLongPress(event, '${msgId}')" 
-                                         onmouseup="cancelLongPress()" 
-                                         onmouseleave="cancelLongPress()">
+                                    <div class="message-bubble" ${interactions}>
                                         ${replyHtml}
                                         ${parsedContent}
                                         <div class="message-time-container">
@@ -2671,253 +2517,100 @@
                                             ${ticksHtml}
                                         </div>
                                         ${reactionsHtml}
-                                        <div class="reaction-picker" id="rp-${msgId}">
-                                            <span onclick="addReaction('${msgId}', '😂', event)">😂</span>
-                                            <span onclick="addReaction('${msgId}', '😃', event)">😃</span>
-                                            <span onclick="addReaction('${msgId}', '😁', event)">😁</span>
-                                            <span onclick="addReaction('${msgId}', '🤧', event)">🤧</span>
-                                            <span onclick="addReaction('${msgId}', '💖', event)">💖</span>
-                                            <span onclick="addReaction('${msgId}', '🤔', event)">🤔</span>
-                                        </div>
+                                        ${isAdminMsg ? '' : `<div class="reaction-picker" id="rp-${msgId}"><span onclick="addReaction('${msgId}', '😂', event)">😂</span><span onclick="addReaction('${msgId}', '😃', event)">😃</span><span onclick="addReaction('${msgId}', '😁', event)">😁</span><span onclick="addReaction('${msgId}', '🤧', event)">🤧</span><span onclick="addReaction('${msgId}', '💖', event)">💖</span><span onclick="addReaction('${msgId}', '🤔', event)">🤔</span></div>`}
                                     </div>
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                     });
                     
                     box.innerHTML = htmlContent;
-                    
-                    setTimeout(() => { 
-                        if (isFirstLoad) { 
-                            box.scrollTop = box.scrollHeight; 
-                            isFirstLoad = false; 
-                        } else if (isNearBottom) { 
-                            box.scrollTop = box.scrollHeight; 
-                        } else { 
-                            box.scrollTop = currentScrollTop; 
-                        } 
-                    }, 10);
-                } else { 
-                    box.innerHTML = '<div style="margin: auto; color: var(--text-muted); font-weight: 500; background:rgba(255,255,255,0.8); padding:10px 20px; border-radius:20px;">Start typing to chat 👋</div>'; 
-                }
+                    setTimeout(() => { if (isFirstLoad) { box.scrollTop = box.scrollHeight; isFirstLoad = false; } else if (isNearBottom) { box.scrollTop = box.scrollHeight; } else { box.scrollTop = currentScrollTop; } }, 10);
+                } else { box.innerHTML = '<div style="margin: auto; color: var(--text-muted); font-weight: 500; background:rgba(255,255,255,0.8); padding:10px 20px; border-radius:20px;">Start typing to chat 👋</div>'; }
             });
 
             activeListeners['typing'] = onValue(ref(db, `typing/${room.id}`), snap => {
-                const indicator = document.getElementById('typing-indicator'); 
-                const typingText = document.getElementById('typing-text');
-                
+                const indicator = document.getElementById('typing-indicator'); const typingText = document.getElementById('typing-text');
                 if(snap.exists()) { 
-                    let typingUsers = []; 
-                    
-                    snap.forEach(child => { 
-                        if(child.key !== currentUser.uid) {
-                            typingUsers.push(child.val()); 
-                        }
-                    }); 
-                    
-                    if(typingUsers.length > 0) { 
-                        typingText.innerText = typingUsers.length === 1 ? `${typingUsers[0]} is typing...` : 'Multiple people are typing...'; 
-                        indicator.classList.remove('hidden'); 
-                        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight; 
-                    } else { 
-                        indicator.classList.add('hidden'); 
-                    }
-                } else { 
-                    indicator.classList.add('hidden'); 
-                }
+                    let typingUsers = []; snap.forEach(child => { if(child.key !== currentUser.uid) typingUsers.push(child.val()); }); 
+                    if(typingUsers.length > 0) { typingText.innerText = typingUsers.length === 1 ? `${typingUsers[0]} is typing...` : 'Multiple people are typing...'; indicator.classList.remove('hidden'); document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight; } else { indicator.classList.add('hidden'); }
+                } else { indicator.classList.add('hidden'); }
             });
-            
             initSwipeToReply();
         };
 
         window.closeChatScreen = () => { 
             document.getElementById('chat-interface').classList.remove('active'); 
-            
-            if(activeListeners['msg']) {
-                off(ref(db, `messages/${currentRoomId}`)); 
-            }
-            if(activeListeners['typing']) {
-                off(ref(db, `typing/${currentRoomId}`)); 
-            }
-            if(currentRoomId && currentUser) {
-                remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); 
-            }
-            
-            currentRoomId = null; 
-            cancelReply(); 
+            if(activeListeners['msg']) off(ref(db, `messages/${currentRoomId}`)); 
+            if(activeListeners['typing']) off(ref(db, `typing/${currentRoomId}`)); 
+            if(currentRoomId && currentUser) remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); 
+            currentRoomId = null; cancelReply(); 
         };
 
         window.handleTypingAndButtons = () => { 
-            if(currentRoomId && currentUser) { 
-                set(ref(db, `typing/${currentRoomId}/${currentUser.uid}`), currentProfile.name || "User"); 
-                
-                clearTimeout(typingTimeout); 
-                
-                typingTimeout = setTimeout(() => { 
-                    remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); 
-                }, 2000); 
-            } 
-            
+            if(currentRoomId && currentUser) { set(ref(db, `typing/${currentRoomId}/${currentUser.uid}`), currentProfile.name || "User"); clearTimeout(typingTimeout); typingTimeout = setTimeout(() => { remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); }, 2000); } 
             const inputVal = document.getElementById('msg-input').value.trim(); 
-            
             document.getElementById('send-btn').classList[inputVal !== '' ? 'remove' : 'add']('hidden'); 
             document.getElementById('mic-btn').classList[inputVal !== '' ? 'add' : 'remove']('hidden'); 
         };
 
         window.triggerSendMessage = async () => { 
-            const input = document.getElementById('msg-input'); 
-            const text = input.value.trim(); 
-            
+            const input = document.getElementById('msg-input'); const text = input.value.trim(); 
             if(text && currentRoomId && currentUser) { 
-                input.value = ''; 
-                handleTypingAndButtons(); 
-                clearTimeout(typingTimeout); 
-                
-                remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); 
-                
+                input.value = ''; handleTypingAndButtons(); clearTimeout(typingTimeout); remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); 
                 try { 
-                    await push(ref(db, `messages/${currentRoomId}`), { 
-                        text: text, 
-                        type: 'text', 
-                        senderId: currentUser.uid, 
-                        senderName: currentProfile.name || "User", 
-                        senderImg: currentProfile.img || "https://via.placeholder.com/100", 
-                        timestamp: Date.now(), 
-                        replyTo: replyingTo || null 
-                    }); 
-                    
-                    cancelReply(); 
-                    
-                    setTimeout(() => { 
-                        const box = document.getElementById('chat-messages'); 
-                        box.scrollTop = box.scrollHeight; 
-                    }, 100); 
-                } catch(e) { 
-                    alert("Error: " + e.message); 
-                } 
+                    await push(ref(db, `messages/${currentRoomId}`), { text: text, type: 'text', senderId: currentUser.uid, senderName: currentProfile.name || "User", senderImg: currentProfile.img || "https://via.placeholder.com/100", timestamp: Date.now(), replyTo: replyingTo || null }); 
+                    cancelReply(); setTimeout(() => { const box = document.getElementById('chat-messages'); box.scrollTop = box.scrollHeight; }, 100); 
+                } catch(e) { alert("Error: " + e.message); } 
             } 
         };
 
         // --- 12. CHAT ACTIONS: REACTIONS, REPLY & GIFS ---
-        window.startLongPress = (e, msgId) => { 
-            longPressTimer = setTimeout(() => { 
-                toggleReactionPicker(msgId); 
-                if(navigator.vibrate) {
-                    navigator.vibrate(50); 
-                }
-            }, 400); 
-        };
-        
-        window.cancelLongPress = () => { 
-            clearTimeout(longPressTimer); 
-        };
+        window.startLongPress = (e, msgId) => { longPressTimer = setTimeout(() => { toggleReactionPicker(msgId); if(navigator.vibrate) navigator.vibrate(50); }, 400); };
+        window.cancelLongPress = () => { clearTimeout(longPressTimer); };
 
         function initSwipeToReply() { 
-            const chatBox = document.getElementById('chat-messages'); 
-            let startX = 0; 
-            let currentMsgRow = null; 
-            
+            const chatBox = document.getElementById('chat-messages'); let startX = 0; let currentMsgRow = null; 
             chatBox.addEventListener('touchstart', e => { 
                 currentMsgRow = e.target.closest('.message-row'); 
-                if(currentMsgRow) {
+                if(currentMsgRow && currentMsgRow.dataset.isadmin !== 'true') {
                     startX = e.touches[0].clientX; 
+                } else {
+                    currentMsgRow = null;
                 }
             }); 
-            
-            chatBox.addEventListener('touchmove', e => { 
-                if(!currentMsgRow) return; 
-                
-                let diff = e.touches[0].clientX - startX; 
-                if(diff > 0 && diff < 60) {
-                    currentMsgRow.style.transform = `translateX(${diff}px)`; 
-                }
-            }); 
-            
-            chatBox.addEventListener('touchend', e => { 
-                if(!currentMsgRow) return; 
-                
-                let diff = e.changedTouches[0].clientX - startX; 
-                
-                if(diff > 40) {
-                    setReply(currentMsgRow.dataset.msgid, currentMsgRow.dataset.sender, currentMsgRow.dataset.text, currentMsgRow.dataset.type); 
-                }
-                
-                currentMsgRow.style.transform = `translateX(0)`; 
-                currentMsgRow = null; 
-            }); 
+            chatBox.addEventListener('touchmove', e => { if(!currentMsgRow) return; let diff = e.touches[0].clientX - startX; if(diff > 0 && diff < 60) currentMsgRow.style.transform = `translateX(${diff}px)`; }); 
+            chatBox.addEventListener('touchend', e => { if(!currentMsgRow) return; let diff = e.changedTouches[0].clientX - startX; if(diff > 40) setReply(currentMsgRow.dataset.msgid, currentMsgRow.dataset.sender, currentMsgRow.dataset.text, currentMsgRow.dataset.type); currentMsgRow.style.transform = `translateX(0)`; currentMsgRow = null; }); 
         }
 
         window.setReply = (msgId, senderName, text, type) => { 
-            replyingTo = { msgId, senderName, text, type }; 
-            document.getElementById('reply-to-name').innerText = senderName; 
-            
+            replyingTo = { msgId, senderName, text, type }; document.getElementById('reply-to-name').innerText = senderName; 
             document.getElementById('reply-to-text').innerText = type === 'audio' ? "🎤 Voice Message" : (type === 'gif' || text.includes('.gif') ? "🖼️ GIF" : text); 
-            
-            document.getElementById('reply-preview-bar').classList.add('active'); 
-            document.getElementById('msg-input').focus(); 
+            document.getElementById('reply-preview-bar').classList.add('active'); document.getElementById('msg-input').focus(); 
         };
 
-        window.cancelReply = () => { 
-            replyingTo = null; 
-            document.getElementById('reply-preview-bar').classList.remove('active'); 
-        };
+        window.cancelReply = () => { replyingTo = null; document.getElementById('reply-preview-bar').classList.remove('active'); };
 
         window.toggleReactionPicker = (msgId) => { 
-            document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('active')); 
-            document.getElementById(`rp-${msgId}`).classList.add('active'); 
-            
-            if (window.closeReactionMenu) { 
-                document.removeEventListener('click', window.closeReactionMenu); 
-                document.removeEventListener('touchstart', window.closeReactionMenu); 
-            } 
-            
-            window.closeReactionMenu = function(e) { 
-                if (e.target.closest('.reaction-picker')) return; 
-                
-                document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('active')); 
-                
-                document.removeEventListener('click', window.closeReactionMenu); 
-                document.removeEventListener('touchstart', window.closeReactionMenu); 
-            }; 
-            
-            setTimeout(() => { 
-                document.addEventListener('click', window.closeReactionMenu); 
-                document.addEventListener('touchstart', window.closeReactionMenu); 
-            }, 350); 
+            document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('active')); document.getElementById(`rp-${msgId}`).classList.add('active'); 
+            if (window.closeReactionMenu) { document.removeEventListener('click', window.closeReactionMenu); document.removeEventListener('touchstart', window.closeReactionMenu); } 
+            window.closeReactionMenu = function(e) { if (e.target.closest('.reaction-picker')) return; document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('active')); document.removeEventListener('click', window.closeReactionMenu); document.removeEventListener('touchstart', window.closeReactionMenu); }; 
+            setTimeout(() => { document.addEventListener('click', window.closeReactionMenu); document.addEventListener('touchstart', window.closeReactionMenu); }, 350); 
         };
 
         window.addReaction = async (msgId, emoji, event) => { 
-            event.preventDefault(); 
-            event.stopPropagation(); 
-            
-            document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('active')); 
-            
-            if (window.closeReactionMenu) { 
-                document.removeEventListener('click', window.closeReactionMenu); 
-                document.removeEventListener('touchstart', window.closeReactionMenu); 
-            } 
-            
+            event.preventDefault(); event.stopPropagation(); document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('active')); 
+            if (window.closeReactionMenu) { document.removeEventListener('click', window.closeReactionMenu); document.removeEventListener('touchstart', window.closeReactionMenu); } 
             await set(ref(db, `messages/${currentRoomId}/${msgId}/reactions/${currentUser.uid}`), emoji); 
         };
 
-        window.openGifModal = () => { 
-            document.getElementById('gif-modal').classList.add('active'); 
-            document.getElementById('gif-search-input').value = ''; 
-            fetchGifs('trending'); 
-        };
+        window.openGifModal = () => { document.getElementById('gif-modal').classList.add('active'); document.getElementById('gif-search-input').value = ''; fetchGifs('trending'); };
 
-        // --- UPDATED GIF FETCHING LOGIC WITH GIPHY FALLBACK ---
+        // FIX: Giphy API fetching implementation
         window.fetchGifs = async (query) => { 
             const resultsContainer = document.getElementById('gif-results'); 
+            if(!query || query.trim() === '') query = 'trending'; 
             
-            if(!query || query.trim() === '') {
-                query = 'trending'; 
-            }
-            
-            // Note: Tenor API sometimes throws CORS/Limit issues. 
-            // I'm using an alternative open GIPHY API key here for stability.
             let url = `https://api.giphy.com/v1/gifs/search?api_key=p0B2N7XzR07k3VdXYB0E68jQ8b9zWq6s&q=${query}&limit=12&rating=g`; 
-            
             if(query === 'trending') {
                 url = `https://api.giphy.com/v1/gifs/trending?api_key=p0B2N7XzR07k3VdXYB0E68jQ8b9zWq6s&limit=12&rating=g`; 
             }
@@ -2925,11 +2618,10 @@
             try { 
                 const response = await fetch(url); 
                 const data = await response.json(); 
-                
                 resultsContainer.innerHTML = ''; 
                 
                 if(!data.data || data.data.length === 0) { 
-                    resultsContainer.innerHTML = `<p style="grid-column: span 2; text-align:center;">Search for GIFs</p>`; 
+                    resultsContainer.innerHTML = `<p style="grid-column: span 2; text-align:center;">No GIFs found 😅</p>`; 
                     return; 
                 } 
                 
@@ -2938,395 +2630,143 @@
                     resultsContainer.innerHTML += `<img src="${gifUrl}" class="gif-item" onclick="sendGif('${gifUrl}')">`; 
                 }); 
             } catch (error) { 
-                console.error(error);
-                resultsContainer.innerHTML = `<p style="grid-column: span 2; text-align:center; color:red;">Check connection or API Limits!</p>`; 
+                resultsContainer.innerHTML = `<p style="grid-column: span 2; text-align:center; color:red;">Check connection!</p>`; 
             } 
         };
 
         window.sendGif = async (url) => { 
             document.getElementById('gif-modal').classList.remove('active'); 
-            
-            try { 
-                await push(ref(db, `messages/${currentRoomId}`), { 
-                    text: url, 
-                    type: 'gif', 
-                    senderId: currentUser.uid, 
-                    senderName: currentProfile.name || "User", 
-                    senderImg: currentProfile.img || "https://via.placeholder.com/100", 
-                    timestamp: Date.now(), 
-                    replyTo: replyingTo || null 
-                }); 
-                
-                cancelReply(); 
-                
-                setTimeout(() => { 
-                    const box = document.getElementById('chat-messages'); 
-                    box.scrollTop = box.scrollHeight; 
-                }, 100); 
-            } catch(e) { 
-                alert("Error: " + e.message); 
-            } 
+            try { await push(ref(db, `messages/${currentRoomId}`), { text: url, type: 'gif', senderId: currentUser.uid, senderName: currentProfile.name || "User", senderImg: currentProfile.img || "https://via.placeholder.com/100", timestamp: Date.now(), replyTo: replyingTo || null }); cancelReply(); setTimeout(() => { const box = document.getElementById('chat-messages'); box.scrollTop = box.scrollHeight; }, 100); } catch(e) { alert("Error: " + e.message); } 
         };
 
         // --- 13. VOICE RECORDING ENGINE ---
-        function formatTime(sec) { 
-            const m = Math.floor(sec / 60); 
-            const s = sec % 60; 
-            return `${m}:${s.toString().padStart(2, '0')}`; 
-        }
+        function formatTime(sec) { const m = Math.floor(sec / 60); const s = sec % 60; return `${m}:${s.toString().padStart(2, '0')}`; }
 
-        window.resetChatUI = () => { 
-            document.getElementById('recording-ui').classList.add('hidden'); 
-            document.getElementById('msg-input').classList.remove('hidden'); 
-            document.getElementById('gif-btn').classList.remove('hidden'); 
-            handleTypingAndButtons(); 
-        };
+        window.resetChatUI = () => { document.getElementById('recording-ui').classList.add('hidden'); document.getElementById('msg-input').classList.remove('hidden'); document.getElementById('gif-btn').classList.remove('hidden'); handleTypingAndButtons(); };
 
-        window.sendVoiceMessage = () => { 
-            if (isRecording && mediaRecorder) { 
-                isRecording = false; 
-                window.isCancelledRecord = false; 
-                mediaRecorder.stop(); 
-            } 
-        };
+        window.sendVoiceMessage = () => { if (isRecording && mediaRecorder) { isRecording = false; window.isCancelledRecord = false; mediaRecorder.stop(); } };
 
         window.startVoiceRecord = async () => { 
             try { 
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-                let audioMimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm'; 
-                
-                mediaRecorder = new MediaRecorder(stream, { mimeType: audioMimeType }); 
-                audioChunks = []; 
-                isRecording = true; 
-                window.isCancelledRecord = false; 
-                
-                document.getElementById('msg-input').classList.add('hidden'); 
-                document.getElementById('gif-btn').classList.add('hidden'); 
-                document.getElementById('mic-btn').classList.add('hidden'); 
-                document.getElementById('send-btn').classList.add('hidden'); 
-                document.getElementById('recording-ui').classList.remove('hidden'); 
-                
-                recordSeconds = 0; 
-                document.getElementById('record-time').innerText = "0:00"; 
-                
-                recordTimerInterval = setInterval(() => { 
-                    recordSeconds++; 
-                    document.getElementById('record-time').innerText = formatTime(recordSeconds); 
-                }, 1000); 
-                
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); let audioMimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm'; 
+                mediaRecorder = new MediaRecorder(stream, { mimeType: audioMimeType }); audioChunks = []; isRecording = true; window.isCancelledRecord = false; 
+                document.getElementById('msg-input').classList.add('hidden'); document.getElementById('gif-btn').classList.add('hidden'); document.getElementById('mic-btn').classList.add('hidden'); document.getElementById('send-btn').classList.add('hidden'); document.getElementById('recording-ui').classList.remove('hidden'); 
+                recordSeconds = 0; document.getElementById('record-time').innerText = "0:00"; 
+                recordTimerInterval = setInterval(() => { recordSeconds++; document.getElementById('record-time').innerText = formatTime(recordSeconds); }, 1000); 
                 if(navigator.vibrate) navigator.vibrate(50); 
-                
-                mediaRecorder.addEventListener("dataavailable", event => { 
-                    audioChunks.push(event.data); 
-                }); 
-                
+                mediaRecorder.addEventListener("dataavailable", event => { audioChunks.push(event.data); }); 
                 mediaRecorder.addEventListener("stop", async () => { 
-                    clearInterval(recordTimerInterval); 
-                    stream.getTracks().forEach(track => track.stop()); 
-                    resetChatUI(); 
-                    
+                    clearInterval(recordTimerInterval); stream.getTracks().forEach(track => track.stop()); resetChatUI(); 
                     if (window.isCancelledRecord) return; 
-                    
-                    const audioBlob = new Blob(audioChunks, { type: audioMimeType }); 
-                    const reader = new FileReader(); 
-                    
-                    reader.readAsDataURL(audioBlob); 
-                    
-                    reader.onloadend = async () => { 
-                        const base64Audio = reader.result; 
-                        try { 
-                            await push(ref(db, `messages/${currentRoomId}`), { 
-                                text: base64Audio, 
-                                type: 'audio', 
-                                mimeType: audioMimeType, 
-                                senderId: currentUser.uid, 
-                                senderName: currentProfile.name || "User", 
-                                senderImg: currentProfile.img || "https://via.placeholder.com/100", 
-                                timestamp: Date.now(), 
-                                replyTo: replyingTo || null 
-                            }); 
-                            
-                            cancelReply(); 
-                            
-                            setTimeout(() => { 
-                                const box = document.getElementById('chat-messages'); 
-                                box.scrollTop = box.scrollHeight; 
-                            }, 100); 
-                        } catch(err) { 
-                            alert("Error sending voice: " + err.message); 
-                        } 
-                    }; 
+                    const audioBlob = new Blob(audioChunks, { type: audioMimeType }); const reader = new FileReader(); 
+                    reader.readAsDataURL(audioBlob); reader.onloadend = async () => { const base64Audio = reader.result; try { await push(ref(db, `messages/${currentRoomId}`), { text: base64Audio, type: 'audio', mimeType: audioMimeType, senderId: currentUser.uid, senderName: currentProfile.name || "User", senderImg: currentProfile.img || "https://via.placeholder.com/100", timestamp: Date.now(), replyTo: replyingTo || null }); cancelReply(); setTimeout(() => { const box = document.getElementById('chat-messages'); box.scrollTop = box.scrollHeight; }, 100); } catch(err) { alert("Error sending voice: " + err.message); } }; 
                 }); 
-                
                 mediaRecorder.start(); 
-            } catch (err) { 
-                alert("Mic access denied!"); 
-            } 
+            } catch (err) { alert("Mic access denied!"); } 
         };
 
-        window.cancelVoiceRecord = () => { 
-            if(isRecording && mediaRecorder) { 
-                window.isCancelledRecord = true; 
-                isRecording = false; 
-                mediaRecorder.stop(); 
-            } 
-        };
+        window.cancelVoiceRecord = () => { if(isRecording && mediaRecorder) { window.isCancelledRecord = true; isRecording = false; mediaRecorder.stop(); } };
 
         // --- 14. ADMIN ROOM SETTINGS ---
         window.openAdminModal = async () => { 
-            document.getElementById('admin-room-code').innerText = currentRoomId; 
-            document.getElementById('admin-modal').classList.add('active'); 
-            
-            const list = document.getElementById('admin-members-list'); 
-            list.innerHTML = '<p class="text-center">Loading...</p>'; 
-            
+            document.getElementById('admin-room-code').innerText = currentRoomId; document.getElementById('admin-modal').classList.add('active'); 
+            const list = document.getElementById('admin-members-list'); list.innerHTML = '<p class="text-center">Loading...</p>'; 
             const memSnap = await get(ref(db, `room_members/${currentRoomId}`)); 
-            
             if(memSnap.exists()){ 
-                list.innerHTML = ''; 
-                const members = memSnap.val(); 
-                document.getElementById('admin-member-count').innerText = Object.keys(members).length; 
-                
+                list.innerHTML = ''; const members = memSnap.val(); document.getElementById('admin-member-count').innerText = Object.keys(members).length; 
                 for(const uid of Object.keys(members)) { 
-                    const uSnap = await get(ref(db, `users/${uid}`)); 
-                    const uData = uSnap.exists() ? uSnap.val() : { name: "Unknown", img: "" }; 
-                    
-                    let actionBtn = uid !== currentUser.uid 
-                        ? `<button class="btn btn-danger" style="width:auto; padding: 0.4rem 0.8rem; font-size:0.8rem; border-radius: 8px;" onclick="kick('${uid}')">Kick</button>` 
-                        : `<span style="font-size:0.8rem; font-weight: 600;">Admin</span>`; 
-                        
-                    list.innerHTML += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.75rem; background: var(--bg-body); border-radius: var(--radius-md);">
-                            <div style="display:flex; align-items:center; gap: 0.75rem;">
-                                <img src="${uData.img}" class="avatar" style="width:32px; height:32px; margin:0;">
-                                <span style="font-weight: 600;">${uData.name}</span>
-                            </div>
-                            ${actionBtn}
-                        </div>
-                    `; 
+                    const uSnap = await get(ref(db, `users/${uid}`)); const uData = uSnap.exists() ? uSnap.val() : { name: "Unknown", img: "" }; 
+                    let actionBtn = uid !== currentUser.uid ? `<button class="btn btn-danger" style="width:auto; padding: 0.4rem 0.8rem; font-size:0.8rem; border-radius: 8px;" onclick="kick('${uid}')">Kick</button>` : `<span style="font-size:0.8rem; font-weight: 600;">Admin</span>`; 
+                    list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding: 0.75rem; background: var(--bg-body); border-radius: var(--radius-md);"><div style="display:flex; align-items:center; gap: 0.75rem;"><img src="${uData.img}" class="avatar" style="width:32px; height:32px; margin:0;"><span style="font-weight: 600;">${uData.name}</span></div>${actionBtn}</div>`; 
                 } 
             } 
         };
 
-        window.kick = async (uid) => { 
-            await remove(ref(db, `room_members/${currentRoomId}/${uid}`)); 
-            await remove(ref(db, `user_chats/${uid}/${currentRoomId}`)); 
-            openAdminModal(); 
-        };
+        window.kick = async (uid) => { await remove(ref(db, `room_members/${currentRoomId}/${uid}`)); await remove(ref(db, `user_chats/${uid}/${currentRoomId}`)); openAdminModal(); };
 
         window.deleteRoom = async () => { 
             if(confirm("Are you sure?")) { 
                 try { 
                     const memSnap = await get(ref(db, `room_members/${currentRoomId}`)); 
-                    if(memSnap.exists()) { 
-                        const members = memSnap.val(); 
-                        for(const uid of Object.keys(members)) { 
-                            await remove(ref(db, `user_chats/${uid}/${currentRoomId}`)); 
-                        } 
-                    } 
-                    
-                    await remove(ref(db, `messages/${currentRoomId}`)); 
-                    await remove(ref(db, `room_members/${currentRoomId}`)); 
-                    await remove(ref(db, `typing/${currentRoomId}`)); 
-                    await remove(ref(db, `rooms/${currentRoomId}`)); 
-                    
-                    alert("Room deleted! 🗑️"); 
-                    document.getElementById('admin-modal').classList.remove('active'); 
-                    closeChatScreen(); 
-                } catch(error) { 
-                    alert("Error deleting room: " + error.message); 
-                } 
+                    if(memSnap.exists()) { const members = memSnap.val(); for(const uid of Object.keys(members)) { await remove(ref(db, `user_chats/${uid}/${currentRoomId}`)); } } 
+                    await remove(ref(db, `messages/${currentRoomId}`)); await remove(ref(db, `room_members/${currentRoomId}`)); await remove(ref(db, `typing/${currentRoomId}`)); await remove(ref(db, `rooms/${currentRoomId}`)); 
+                    alert("Room deleted! 🗑️"); document.getElementById('admin-modal').classList.remove('active'); closeChatScreen(); 
+                } catch(error) { alert("Error deleting room: " + error.message); } 
             } 
         };
 
-        function detachAll() { 
-            off(ref(db, 'rooms')); 
-            if(currentUser) {
-                off(ref(db, `user_chats/${currentUser.uid}`)); 
-            }
-        }
+        function detachAll() { off(ref(db, 'rooms')); if(currentUser) off(ref(db, `user_chats/${currentUser.uid}`)); }
 
         // --- 15. WEBRTC CALLING ENGINE (FULL SETUP) ---
-        window.toggleCallDropdown = () => { 
-            const drop = document.getElementById('call-dropdown'); 
-            drop.classList.toggle('active'); 
-            
-            setTimeout(() => { 
-                document.addEventListener('click', () => drop.classList.remove('active'), {once:true}); 
-            }, 100); 
-        };
+        window.toggleCallDropdown = () => { const drop = document.getElementById('call-dropdown'); drop.classList.toggle('active'); setTimeout(() => { document.addEventListener('click', () => drop.classList.remove('active'), {once:true}); }, 100); };
 
         window.initiateCall = async (type) => { 
-            if(!currentRoomId) return; 
-            
-            activeCallType = type; 
-            
-            await push(ref(db, `messages/${currentRoomId}`), { 
-                text: "Started a call", 
-                type: 'call_invite', 
-                callType: type, 
-                senderId: currentUser.uid, 
-                senderImg: currentProfile.img, 
-                timestamp: Date.now() 
-            }); 
-            
-            await set(ref(db, `calls/${currentRoomId}/status`), { 
-                isRinging: true, 
-                type: type, 
-                callerId: currentUser.uid, 
-                callerName: currentProfile.name, 
-                callerImg: currentProfile.img, 
-                ended: false 
-            }); 
-            
-            openCallScreenUI(type); 
-            await setupWebRTC(true); 
+            if(!currentRoomId) return; activeCallType = type; 
+            await push(ref(db, `messages/${currentRoomId}`), { text: "Started a call", type: 'call_invite', callType: type, senderId: currentUser.uid, senderImg: currentProfile.img, timestamp: Date.now() }); 
+            await set(ref(db, `calls/${currentRoomId}/status`), { isRinging: true, type: type, callerId: currentUser.uid, callerName: currentProfile.name, callerImg: currentProfile.img, ended: false }); 
+            openCallScreenUI(type); await setupWebRTC(true); 
         };
 
         window.answerCall = async () => { 
             document.getElementById('incoming-call-modal').classList.remove('active'); 
-            stopRingtone(); // Stop ringtone when answered
-            
+            stopRingtone(); 
             await update(ref(db, `calls/${currentRoomId}/status`), { isRinging: false }); 
-            
-            openCallScreenUI(activeCallType); 
-            await setupWebRTC(false); 
+            openCallScreenUI(activeCallType); await setupWebRTC(false); 
         };
 
-        window.joinActiveCall = async (type) => { 
-            activeCallType = type; 
-            openCallScreenUI(type); 
-            await setupWebRTC(false); 
-        };
+        window.joinActiveCall = async (type) => { activeCallType = type; openCallScreenUI(type); await setupWebRTC(false); };
 
+        // FIX: Remove alert on call end, close screen directly
         window.hangupCall = async () => { 
             await update(ref(db, `calls/${currentRoomId}/status`), { ended: true }); 
+            if(peerConnection) peerConnection.close(); if(localStream) localStream.getTracks().forEach(track => track.stop()); 
             
-            if(peerConnection) {
-                peerConnection.close(); 
-            }
-            if(localStream) {
-                localStream.getTracks().forEach(track => track.stop()); 
-            }
+            document.getElementById('call-status-text').innerText = "Call Ended";
             
-            document.getElementById('active-call-screen').classList.remove('active'); 
-            stopRingtone();
-            
-            peerConnection = null; 
-            localStream = null; 
-            
-            setTimeout(async () => { 
+            // Wait slightly so user sees "Call Ended", then close.
+            setTimeout(async () => {
+                document.getElementById('active-call-screen').classList.remove('active'); 
+                document.getElementById('incoming-call-modal').classList.remove('active'); 
+                stopRingtone();
+                peerConnection = null; localStream = null; 
                 await remove(ref(db, `calls/${currentRoomId}`)); 
-            }, 2000); 
+            }, 800); 
             
-            off(ref(db, `calls/${currentRoomId}/answer`)); 
-            off(ref(db, `calls/${currentRoomId}/calleeCandidates`)); 
-            off(ref(db, `calls/${currentRoomId}/callerCandidates`)); 
+            off(ref(db, `calls/${currentRoomId}/answer`)); off(ref(db, `calls/${currentRoomId}/calleeCandidates`)); off(ref(db, `calls/${currentRoomId}/callerCandidates`)); 
         };
 
         async function setupWebRTC(isCaller) { 
             const constraints = { audio: true, video: activeCallType === 'video' }; 
-            
-            try { 
-                localStream = await navigator.mediaDevices.getUserMedia(constraints); 
-                document.getElementById('localVideo').srcObject = localStream; 
-            } catch (e) { 
-                alert("Camera/Microphone access required!"); 
-                hangupCall(); 
-                return; 
-            } 
-            
-            peerConnection = new RTCPeerConnection(rtcServers); 
-            remoteStream = new MediaStream(); 
-            
-            document.getElementById('remoteVideo').srcObject = remoteStream; 
-            
+            try { localStream = await navigator.mediaDevices.getUserMedia(constraints); document.getElementById('localVideo').srcObject = localStream; } catch (e) { alert("Camera/Microphone access required!"); hangupCall(); return; } 
+            peerConnection = new RTCPeerConnection(rtcServers); remoteStream = new MediaStream(); document.getElementById('remoteVideo').srcObject = remoteStream; 
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream)); 
-            
-            peerConnection.ontrack = event => { 
-                event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track)); 
-                document.getElementById('call-status-text').innerText = "Connected"; 
-            }; 
-            
-            peerConnection.onicecandidate = event => { 
-                if (event.candidate) { 
-                    const node = isCaller ? 'callerCandidates' : 'calleeCandidates'; 
-                    push(ref(db, `calls/${currentRoomId}/${node}`), event.candidate.toJSON()); 
-                } 
-            }; 
+            peerConnection.ontrack = event => { event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track)); document.getElementById('call-status-text').innerText = "Connected"; }; 
+            peerConnection.onicecandidate = event => { if (event.candidate) { const node = isCaller ? 'callerCandidates' : 'calleeCandidates'; push(ref(db, `calls/${currentRoomId}/${node}`), event.candidate.toJSON()); } }; 
             
             if (isCaller) { 
-                const offer = await peerConnection.createOffer(); 
-                await peerConnection.setLocalDescription(offer); 
-                await set(ref(db, `calls/${currentRoomId}/offer`), { type: offer.type, sdp: offer.sdp }); 
-                
-                onValue(ref(db, `calls/${currentRoomId}/answer`), snap => { 
-                    const data = snap.val(); 
-                    if (!peerConnection.currentRemoteDescription && data) { 
-                        peerConnection.setRemoteDescription(new RTCSessionDescription(data)); 
-                    } 
-                }); 
-                
-                onChildAdded(ref(db, `calls/${currentRoomId}/calleeCandidates`), snap => { 
-                    if (snap.val()) {
-                        peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); 
-                    }
-                }); 
+                const offer = await peerConnection.createOffer(); await peerConnection.setLocalDescription(offer); await set(ref(db, `calls/${currentRoomId}/offer`), { type: offer.type, sdp: offer.sdp }); 
+                onValue(ref(db, `calls/${currentRoomId}/answer`), snap => { const data = snap.val(); if (!peerConnection.currentRemoteDescription && data) { peerConnection.setRemoteDescription(new RTCSessionDescription(data)); } }); 
+                onChildAdded(ref(db, `calls/${currentRoomId}/calleeCandidates`), snap => { if (snap.val()) peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); }); 
             } else { 
                 const offerSnap = await get(ref(db, `calls/${currentRoomId}/offer`)); 
-                
                 if (offerSnap.exists()) { 
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(offerSnap.val())); 
-                    const answer = await peerConnection.createAnswer(); 
-                    
-                    await peerConnection.setLocalDescription(answer); 
-                    await set(ref(db, `calls/${currentRoomId}/answer`), { type: answer.type, sdp: answer.sdp }); 
-                    
-                    onChildAdded(ref(db, `calls/${currentRoomId}/callerCandidates`), snap => { 
-                        if (snap.val()) {
-                            peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); 
-                        }
-                    }); 
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(offerSnap.val())); const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer); await set(ref(db, `calls/${currentRoomId}/answer`), { type: answer.type, sdp: answer.sdp }); 
+                    onChildAdded(ref(db, `calls/${currentRoomId}/callerCandidates`), snap => { if (snap.val()) peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); }); 
                 } else { 
-                    alert("Call ended."); 
+                    // Automatically end without alert
                     hangupCall(); 
                 } 
             } 
         }
 
         function openCallScreenUI(type) { 
-            document.getElementById('active-call-screen').classList.add('active'); 
-            const audioModeDiv = document.getElementById('audio-avatar-mode'); 
-            const camBtn = document.getElementById('call-cam-btn'); 
-            
-            document.getElementById('call-status-text').innerText = "Connecting..."; 
-            
-            if (type === 'audio') { 
-                audioModeDiv.classList.add('active'); 
-                camBtn.style.display = 'none'; 
-                document.getElementById('call-remote-avatar').src = document.getElementById('chat-header-img').src; 
-            } else { 
-                audioModeDiv.classList.remove('active'); 
-                camBtn.style.display = 'block'; 
-            } 
+            document.getElementById('active-call-screen').classList.add('active'); const audioModeDiv = document.getElementById('audio-avatar-mode'); const camBtn = document.getElementById('call-cam-btn'); document.getElementById('call-status-text').innerText = "Connecting..."; 
+            if (type === 'audio') { audioModeDiv.classList.add('active'); camBtn.style.display = 'none'; document.getElementById('call-remote-avatar').src = document.getElementById('chat-header-img').src; } else { audioModeDiv.classList.remove('active'); camBtn.style.display = 'block'; } 
         }
 
         // Call Control Toggles
-        window.toggleMic = () => { 
-            isAudioMuted = !isAudioMuted; 
-            localStream.getAudioTracks()[0].enabled = !isAudioMuted; 
-            document.getElementById('call-mic-btn').innerText = isAudioMuted ? '🔇' : '🎤'; 
-            document.getElementById('call-mic-btn').style.background = isAudioMuted ? 'var(--danger)' : 'rgba(255,255,255,0.2)'; 
-        };
-        
-        window.toggleCam = () => { 
-            if(activeCallType === 'audio') return; 
-            
-            isVideoMuted = !isVideoMuted; 
-            localStream.getVideoTracks()[0].enabled = !isVideoMuted; 
-            document.getElementById('call-cam-btn').innerText = isVideoMuted ? '🚫' : '📹'; 
-            document.getElementById('call-cam-btn').style.background = isVideoMuted ? 'var(--danger)' : 'rgba(255,255,255,0.2)'; 
-        };
+        window.toggleMic = () => { isAudioMuted = !isAudioMuted; localStream.getAudioTracks()[0].enabled = !isAudioMuted; document.getElementById('call-mic-btn').innerText = isAudioMuted ? '🔇' : '🎤'; document.getElementById('call-mic-btn').style.background = isAudioMuted ? 'var(--danger)' : 'rgba(255,255,255,0.2)'; };
+        window.toggleCam = () => { if(activeCallType === 'audio') return; isVideoMuted = !isVideoMuted; localStream.getVideoTracks()[0].enabled = !isVideoMuted; document.getElementById('call-cam-btn').innerText = isVideoMuted ? '🚫' : '📹'; document.getElementById('call-cam-btn').style.background = isVideoMuted ? 'var(--danger)' : 'rgba(255,255,255,0.2)'; };
 
     </script>
 </body>
