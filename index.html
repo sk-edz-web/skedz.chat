@@ -9,6 +9,20 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "YOUR_ONESIGNAL_APP_ID_HERE", /* TODO: Put your OneSignal App ID here */
+          safari_web_id: "web.onesignal.auto.12345",
+          notifyButton: {
+            enable: true,
+          },
+        });
+      });
+    </script>
+
     <style>
         /* ==========================================================================
            1. CSS VARIABLES & THEME DEFINITIONS
@@ -1358,6 +1372,8 @@
 </head>
 <body>
 
+    <audio id="ringtone-audio" loop src="https://assets.mixkit.io/sfx/preview/mixkit-phone-ring-1354.mp3"></audio>
+
     <div id="auth-screen">
         <div class="auth-card">
             <h2 id="auth-title" style="margin-bottom: 0.5rem; font-size: 1.8rem;">SK Secure Chat</h2>
@@ -1625,7 +1641,8 @@
                     <button class="btn" onclick="saveProfile()">Save Changes</button>
                     <button class="btn btn-outline" style="border-color: #10b981; color: #10b981;" onclick="requestPushPermission()">🔔 Enable Notifications</button>
                     
-                         
+                    <button class="btn btn-outline" style="border-color: #fbbf24; color: #d97706; margin-top: 10px;" onclick="openAdminFeedbacks()">⭐ View All Feedbacks (Admin)</button>
+                    
                     <button class="btn btn-danger" onclick="logout()">Sign Out</button>
                 </div>
             </div>
@@ -1852,11 +1869,16 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getDatabase, ref, set, get, push, onValue, remove, update, onChildAdded, off } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
+        // UPDATED FIREBASE CONFIGURATION
         const firebaseConfig = {
-            apiKey: "AIzaSyD4FPU1uapSWjbpyR1Jjf854T7V4qMV-TM",
-            authDomain: "skedz-a13eb.firebaseapp.com",
-            databaseURL: "https://skedz-a13eb-default-rtdb.firebaseio.com",
-            projectId: "skedz-a13eb"
+          apiKey: "AIzaSyBOqTZTgkFYfnd318pJTlWC86oSjXzb3mE",
+          authDomain: "pvt-chat-df40d.firebaseapp.com",
+          databaseURL: "https://pvt-chat-df40d-default-rtdb.firebaseio.com",
+          projectId: "pvt-chat-df40d",
+          storageBucket: "pvt-chat-df40d.firebasestorage.app",
+          messagingSenderId: "506549084982",
+          appId: "1:506549084982:web:3b3af391261aab8e53c997",
+          measurementId: "G-DSKGN9ZWEF"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -1881,8 +1903,14 @@
         let recordTimerInterval; 
         let recordSeconds = 0; 
 
-        // WebRTC Calling State
-        const rtcServers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+        // WebRTC Calling State - UPDATED STUN SERVERS FOR BETTER PC TO MOBILE CONNECTION
+        const rtcServers = { 
+            iceServers: [
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:global.stun.twilio.com:3478' }
+            ] 
+        };
         let peerConnection; 
         let localStream; 
         let remoteStream; 
@@ -1906,7 +1934,6 @@
 
         function sendPushNotification(title, body) {
             if ("Notification" in window && Notification.permission === "granted") {
-                // Trigger notification only if the browser is hidden/backgrounded
                 if (document.hidden) {
                     new Notification(title, { 
                         body: body, 
@@ -1914,6 +1941,18 @@
                     });
                 }
             }
+        }
+
+        // Play Ringtone Logic
+        function playRingtone() {
+            const ringtone = document.getElementById('ringtone-audio');
+            ringtone.play().catch(e => console.log("Autoplay blocked for ringtone. User must interact first."));
+        }
+
+        function stopRingtone() {
+            const ringtone = document.getElementById('ringtone-audio');
+            ringtone.pause();
+            ringtone.currentTime = 0;
         }
 
         // --- 4. DIALER PAD ENGINE ---
@@ -1932,7 +1971,6 @@
             displayEl.innerText = dialedNumber;
         };
 
-        // Processes Call/Message from Dialer
         window.processDial = async (actionType) => {
             if(dialedNumber.length !== 10) {
                 return alert("Please enter a full 10-digit number!");
@@ -1941,18 +1979,14 @@
                 return alert("Bro, you cannot call yourself!");
             }
 
-            // Check DB for number
             const contactSnap = await get(ref(db, `user_contacts/${dialedNumber}`));
             if(!contactSnap.exists()) {
                 return alert("Number not found in database!");
             }
 
             const targetUid = contactSnap.val();
-            
-            // Consistent Room ID generator (always alphabetical)
             const roomId = [currentUser.uid, targetUid].sort().join('_');
 
-            // Setup direct room if it doesn't exist yet
             const roomSnap = await get(ref(db, `rooms/${roomId}`));
             if(!roomSnap.exists()) {
                 await set(ref(db, `rooms/${roomId}`), { 
@@ -1964,19 +1998,15 @@
                 await set(ref(db, `user_chats/${targetUid}/${roomId}`), { joinedAt: Date.now() });
             }
             
-            // Re-fetch Data
             const rData = (await get(ref(db, `rooms/${roomId}`))).val();
             
-            // Decide Action
             if(actionType === 'chat') {
                 openChatScreen(rData);
             } else {
-                // It's a call. First open chat screen seamlessly to initialize listeners
                 await openChatScreen(rData);
                 initiateCall(actionType);
             }
         };
-
 
         // --- 5. UI & NAVIGATION CONTROLLERS ---
         window.toggleAccordion = (containerId, btnElement) => {
@@ -1993,37 +2023,33 @@
         };
 
         window.switchTab = (tab, el, isMobile = false) => {
-            // Remove previous active classes
             document.querySelectorAll('.mobile-nav-item, .top-nav-item').forEach(n => n.classList.remove('active'));
             
-            // Set current element as active if provided
-            if(el) el.classList.add('active');
+            if(el) {
+                el.classList.add('active');
+            }
             
-            // Hide all views
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             
-            // Show target view
             const targetView = document.getElementById('view-' + tab);
-            if(targetView) targetView.classList.add('active');
-            
-            // Reset logic specifically for Dialer
-            if(tab === 'dialer') {
-                dialedNumber = ''; 
-                displayEl.innerText = '';
+            if(targetView) {
+                targetView.classList.add('active');
             }
-
-            // Close Chat overlay if active
+            
+            if(tab === 'dialer') { 
+                dialedNumber = ''; 
+                displayEl.innerText = ''; 
+            }
+            
             if(document.getElementById('chat-interface').classList.contains('active')) {
                 closeChatScreen();
             }
         };
 
         window.switchChatSubTab = (type) => {
-            // Reset Button states
             document.getElementById('tab-rooms-btn').classList.remove('active'); 
             document.getElementById('tab-individual-btn').classList.remove('active');
             
-            // Hide Lists
             document.getElementById('list-rooms-container').classList.add('hidden'); 
             document.getElementById('list-individual-container').classList.add('hidden');
             
@@ -2044,9 +2070,7 @@
             }
         };
 
-
         // --- 6. AUTHENTICATION LOGIC ---
-        // Toggle Logic for Login / Signup UI
         window.toggleAuth = (isSignup) => {
             const loginForm = document.getElementById('login-form');
             const signupForm = document.getElementById('signup-form');
@@ -2066,20 +2090,18 @@
             }
         };
 
-        // Setup Login listener
         document.getElementById('login-form').addEventListener('submit', async (e) => { 
             e.preventDefault(); 
             const email = document.getElementById('login-email').value; 
             const pass = document.getElementById('login-pass').value;
             
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
+            try { 
+                await signInWithEmailAndPassword(auth, email, pass); 
             } catch(err) { 
                 alert(err.message.replace("Firebase: ", "")); 
             }
         });
 
-        // Setup Signup listener
         document.getElementById('signup-form').addEventListener('submit', async (e) => { 
             e.preventDefault(); 
             const name = document.getElementById('signup-name').value;
@@ -2088,20 +2110,15 @@
 
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                
-                // Generate Unique 10 Digit No.
                 const newNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
                 
-                // Setup Basic Profile
                 await set(ref(db, `users/${cred.user.uid}`), { 
                     name: name, 
                     img: "https://ui-avatars.com/api/?name=" + name + "&background=random", 
                     contactNo: newNumber 
                 });
-
-                // Reserve Contact mapping
-                await set(ref(db, `user_contacts/${newNumber}`), cred.user.uid);
                 
+                await set(ref(db, `user_contacts/${newNumber}`), cred.user.uid);
             } catch(err) { 
                 alert(err.message.replace("Firebase: ", "")); 
             }
@@ -2109,33 +2126,29 @@
 
         window.logout = () => signOut(auth);
 
-        // Auth Observer
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 
-                // Handle UI visibility
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('top-navbar').classList.remove('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
                 
-                // Auto prompt Notification permission
-                if("Notification" in window) Notification.requestPermission();
+                if("Notification" in window) {
+                    Notification.requestPermission();
+                }
                 
-                // Fetch Profile Data
                 const snap = await get(ref(db, `users/${currentUser.uid}`));
                 if(snap.exists()) {
                     currentProfile = snap.val();
                     
-                    // Backward Compatibility for older users without number
                     if(!currentProfile.contactNo) {
                         const newNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
                         currentProfile.contactNo = newNum;
                         await update(ref(db, `users/${currentUser.uid}`), { contactNo: newNum });
                         await set(ref(db, `user_contacts/${newNum}`), currentUser.uid);
                     }
-
-                    // Update UI values
+                    
                     document.getElementById('profile-name').value = currentProfile.name;
                     document.getElementById('profile-img-url').value = currentProfile.img;
                     document.getElementById('profile-preview').src = currentProfile.img;
@@ -2144,7 +2157,6 @@
                     document.getElementById('fb-name').value = currentProfile.name;
                 }
                 
-                // Start Listeners
                 listenToMyChats(); 
                 listenToPublicRooms();
             } else {
@@ -2153,7 +2165,6 @@
                 document.getElementById('top-navbar').classList.add('hidden');
             }
         });
-
 
         // --- 7. PROFILE & USER PREFERENCES ---
         window.saveProfile = async () => {
@@ -2174,7 +2185,9 @@
             const text = document.getElementById('fb-text').value; 
             const ratingInput = document.querySelector('input[name="rating"]:checked');
             
-            if(!ratingInput) return alert("Please select a star rating!");
+            if(!ratingInput) {
+                return alert("Please select a star rating!");
+            }
             
             try {
                 await push(ref(db, 'feedbacks'), { 
@@ -2189,16 +2202,18 @@
                 alert("Thank you for your feedback! 💖"); 
                 document.getElementById('feedback-form').reset();
                 
-                // Restore defaults
-                if(currentUser) document.getElementById('fb-email').value = currentUser.email;
-                if(currentProfile) document.getElementById('fb-name').value = currentProfile.name;
+                if(currentUser) {
+                    document.getElementById('fb-email').value = currentUser.email;
+                }
+                if(currentProfile) {
+                    document.getElementById('fb-name').value = currentProfile.name;
+                }
                 
                 switchTab('home');
             } catch(err) { 
                 alert("Error submitting feedback: " + err.message); 
             }
         };
-
 
         // --- 8. ADMIN: FEEDBACK VIEWER & REPLY SYSTEM ---
         window.openAdminFeedbacks = () => {
@@ -2213,13 +2228,16 @@
                 if(snap.exists()) {
                     let html = '';
                     const feedbackArray = [];
-                    snap.forEach(child => { feedbackArray.push({ id: child.key, ...child.val() }); });
+                    
+                    snap.forEach(child => { 
+                        feedbackArray.push({ id: child.key, ...child.val() }); 
+                    });
                     
                     feedbackArray.reverse(); 
 
                     feedbackArray.forEach(fb => {
-                        const date = new Date(fb.timestamp).toLocaleString('en-IN', {
-                            day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+                        const date = new Date(fb.timestamp).toLocaleString('en-IN', { 
+                            day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' 
                         });
                         const ratingNum = parseInt(fb.rating) || 0;
                         const stars = '★'.repeat(ratingNum) + '☆'.repeat(5 - ratingNum);
@@ -2263,7 +2281,10 @@
         };
 
         window.openAdminReplyModal = (uid, name) => {
-            if(uid === 'anonymous') return alert("Cannot reply to anonymous users.");
+            if(uid === 'anonymous') {
+                return alert("Cannot reply to anonymous users.");
+            }
+            
             currentReplyData = { uid, name };
             document.getElementById('replyTitle').innerText = `Reply to ${name}`;
             document.getElementById('replyModal').classList.add('active');
@@ -2276,40 +2297,40 @@
 
         document.getElementById('confirmReplyBtn').onclick = async () => {
             const text = document.getElementById('replyText').value.trim();
-            if(!text) return alert("Please type something!");
-
+            if(!text) {
+                return alert("Please type something!");
+            }
+            
             const userUid = currentReplyData.uid;
             const roomId = "REPLY_" + userUid; 
             
-            const roomData = {
-                id: roomId,
-                name: "Support Reply",
-                icon: "https://cdn-icons-png.flaticon.com/512/681/681494.png",
-                type: "private",
-                adminId: "ADMIN"
-            };
-
             try {
-                await set(ref(db, `rooms/${roomId}`), roomData);
+                await set(ref(db, `rooms/${roomId}`), { 
+                    id: roomId, 
+                    name: "Support Reply", 
+                    icon: "https://cdn-icons-png.flaticon.com/512/681/681494.png", 
+                    type: "private", 
+                    adminId: "ADMIN" 
+                });
+                
                 await set(ref(db, `room_members/${roomId}/${userUid}`), { role: 'member' });
                 await set(ref(db, `user_chats/${userUid}/${roomId}`), { joinedAt: Date.now() });
-
-                await push(ref(db, `messages/${roomId}`), {
-                    text: text,
-                    type: 'text',
-                    senderId: "ADMIN",
-                    senderName: "Support Team",
-                    senderImg: "https://ui-avatars.com/api/?name=Admin&background=000&color=fff",
-                    timestamp: Date.now()
+                
+                await push(ref(db, `messages/${roomId}`), { 
+                    text: text, 
+                    type: 'text', 
+                    senderId: "ADMIN", 
+                    senderName: "Support Team", 
+                    senderImg: "https://ui-avatars.com/api/?name=Admin&background=000&color=fff", 
+                    timestamp: Date.now() 
                 });
 
                 alert("Reply sent to user's chat successfully!");
                 closeReplyModal();
-            } catch (e) {
-                alert("Error: " + e.message);
+            } catch (e) { 
+                alert("Error: " + e.message); 
             }
         };
-
 
         // --- 9. ROOM CREATION & JOINING ---
         window.createRoom = async () => {
@@ -2336,6 +2357,7 @@
             
             document.getElementById('new-room-name').value = ''; 
             document.getElementById('btn-create').disabled = true;
+            
             toggleAccordion('create-room-container', document.querySelectorAll('.tap-action-btn')[1]);
             openChatScreen(roomData); 
         };
@@ -2350,10 +2372,7 @@
             if(!roomSnap.exists()) return alert("Room not found!");
             
             const roomData = roomSnap.val();
-            
-            if(roomData.type === 'direct') {
-                return alert("This is a private individual chat ID.");
-            }
+            if(roomData.type === 'direct') return alert("This is a private individual chat ID.");
             
             const ucSnap = await get(ref(db, `user_chats/${currentUser.uid}/${roomId}`));
             if(ucSnap.exists()) { 
@@ -2361,9 +2380,7 @@
                 return openChatScreen(roomData); 
             }
             
-            if(roomData.pass && roomData.pass !== pass) {
-                return alert("Incorrect password");
-            }
+            if(roomData.pass && roomData.pass !== pass) return alert("Incorrect password");
             
             await set(ref(db, `room_members/${roomId}/${currentUser.uid}`), { role: 'member' });
             await set(ref(db, `user_chats/${currentUser.uid}/${roomId}`), { joinedAt: Date.now() });
@@ -2425,7 +2442,6 @@
                         if(roomSnap.exists()) {
                             const room = roomSnap.val();
                             
-                            // Segregate Individual vs Group Rooms
                             if(room.type === 'direct') {
                                 hasDirect = true;
                                 const otherUid = Object.keys(room.users).find(id => id !== currentUser.uid);
@@ -2456,18 +2472,16 @@
                                 `;
                             }
                             
-                            // --- GLOBAL INCOMING CALL LISTENER ---
+                            // --- GLOBAL INCOMING CALL LISTENER WITH AUDIO RINGTONE ---
                             onValue(ref(db, `calls/${roomId}/status`), callSnap => {
                                 const callStatus = callSnap.val();
                                 
                                 if(!callStatus || callStatus.ended) {
                                     document.getElementById('incoming-call-modal').classList.remove('active');
-                                    // Make sure we only remove active-call-screen if we are NOT currently in the call
-                                    // (This prevents closing active calls prematurely)
+                                    stopRingtone(); // Stop audio if call ends
                                     return;
                                 }
                                 
-                                // If ringing and I am NOT the caller, trigger the WhatsApp-style popup
                                 if(callStatus.isRinging && callStatus.callerId !== currentUser.uid) {
                                     currentRoomId = roomId; 
                                     activeCallType = callStatus.type;
@@ -2478,26 +2492,26 @@
                                     document.getElementById('incoming-call-type').innerText = `Incoming ${callStatus.type.toUpperCase()} Call...`;
                                     
                                     document.getElementById('incoming-call-modal').classList.add('active');
-
-                                    // Trigger Web Notification
+                                    
+                                    playRingtone(); // Play Ringing Sound
                                     sendPushNotification(`📞 Incoming ${callStatus.type} call`, `${callStatus.callerName} is calling you!`);
                                 }
                             });
 
-                            // --- GLOBAL MESSAGE NOTIFICATION LISTENER ---
                             onValue(ref(db, `messages/${roomId}`), msgSnap => {
                                 if(!msgSnap.exists()) return;
                                 let lastMsg = null;
-                                msgSnap.forEach(c => { lastMsg = c.val(); });
                                 
-                                // Push Notification for Messages
+                                msgSnap.forEach(c => { 
+                                    lastMsg = c.val(); 
+                                });
+                                
                                 if(lastMsg && lastMsg.senderId !== currentUser.uid && currentRoomId !== roomId) {
                                     sendPushNotification(`💬 New message from ${lastMsg.senderName}`, lastMsg.type === 'text' ? lastMsg.text : 'Media sent');
                                 }
                             });
 
                         } else { 
-                            // Room deleted, clean up reference
                             remove(ref(db, `user_chats/${currentUser.uid}/${roomId}`)); 
                         }
                     }
@@ -2512,7 +2526,6 @@
             });
         }
 
-
         // --- 11. CHAT SCREEN UI CONTROLLERS ---
         window.copyRoomId = () => { 
             if(currentRoomId) { 
@@ -2520,13 +2533,19 @@
                 navigator.clipboard.writeText(idText).then(() => { 
                     const idSpan = document.getElementById('chat-header-id'); 
                     const originalText = idSpan.innerText; 
+                    
                     idSpan.innerText = "✓ Copied!"; 
-                    setTimeout(() => idSpan.innerText = originalText, 1500); 
+                    
+                    setTimeout(() => {
+                        idSpan.innerText = originalText;
+                    }, 1500); 
                 }); 
             } 
         };
 
-        window.openWallpaperModal = () => document.getElementById('wallpaper-modal').classList.add('active');
+        window.openWallpaperModal = () => {
+            document.getElementById('wallpaper-modal').classList.add('active');
+        };
         
         window.setWallpaper = (url) => { 
             if(currentRoomId) { 
@@ -2539,11 +2558,7 @@
         function applyBackground(roomId) { 
             const savedBg = localStorage.getItem(`chat_bg_${roomId}`); 
             const chatBody = document.getElementById('chat-messages'); 
-            if(savedBg) {
-                chatBody.style.backgroundImage = `url(${savedBg})`; 
-            } else {
-                chatBody.style.backgroundImage = 'none'; 
-            }
+            chatBody.style.backgroundImage = savedBg ? `url(${savedBg})` : 'none'; 
         }
 
         window.openChatScreen = async (room) => {
@@ -2552,7 +2567,6 @@
             
             document.getElementById('chat-interface').classList.add('active');
             
-            // Render Header based on Room Type
             if(room.type === 'direct') {
                 const otherUid = Object.keys(room.users).find(id => id !== currentUser.uid);
                 const otherUser = (await get(ref(db, `users/${otherUid}`))).val();
@@ -2567,21 +2581,13 @@
                 document.getElementById('chat-header-id').innerText = `ID: ${room.id}`;
                 document.getElementById('chat-header-img').src = room.icon;
                 document.getElementById('chat-header-img').style.borderRadius = "12px";
-                
-                if(currentUser.uid === room.adminId) {
-                    document.getElementById('admin-settings-btn').classList.remove('hidden');
-                } else {
-                    document.getElementById('admin-settings-btn').classList.add('hidden');
-                }
+                document.getElementById('admin-settings-btn').classList[currentUser.uid === room.adminId ? 'remove' : 'add']('hidden');
             }
             
             resetChatUI(); 
             applyBackground(room.id);
 
-            // Fetch and Render Messages dynamically
             activeListeners['msg'] = onValue(ref(db, `messages/${room.id}`), snap => {
-                
-                // Security check if room deleted
                 get(ref(db, `rooms/${room.id}`)).then(rsnap => { 
                     if(!rsnap.exists()){ 
                         alert("Chat was deleted."); 
@@ -2592,7 +2598,6 @@
                 const box = document.getElementById('chat-messages');
                 const currentScrollTop = box.scrollTop; 
                 const isNearBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 150;
-                
                 let htmlContent = '';
 
                 if(snap.exists()){
@@ -2601,16 +2606,14 @@
                         const msg = child.val(); 
                         const isMe = msg.senderId === currentUser.uid;
                         
-                        const time = new Date(msg.timestamp).toLocaleTimeString([], {
-                            hour: '2-digit', minute:'2-digit'
+                        const time = new Date(msg.timestamp).toLocaleTimeString([], { 
+                            hour: '2-digit', minute:'2-digit' 
                         });
                         
-                        // Mark as read
                         if (!isMe && (!msg.seenBy || !msg.seenBy[currentUser.uid])) {
                             update(ref(db, `messages/${room.id}/${msgId}/seenBy`), { [currentUser.uid]: true });
                         }
 
-                        // Call Invite UI Generator
                         if (msg.type === 'call_invite') {
                             htmlContent += `
                                 <div class="message-row ${isMe ? 'me' : 'other'}">
@@ -2624,54 +2627,31 @@
                                             <button class="btn btn-success" style="padding:6px 12px; font-size:0.85rem;" onclick="joinActiveCall('${msg.callType}')">Join Call</button>
                                         </div>
                                     </div>
-                                </div>`;
+                                </div>
+                            `;
                             return; 
                         }
 
-                        // Parse Reply block
                         let replyHtml = '';
                         if(msg.replyTo) {
-                            let rText = ''; 
-                            if (msg.replyTo.type === 'audio') {
-                                rText = '🎤 Voice Message'; 
-                            } else if (msg.replyTo.type === 'gif' || (msg.replyTo.text && msg.replyTo.text.includes('.gif'))) {
-                                rText = '🖼️ GIF'; 
-                            } else {
-                                rText = msg.replyTo.text.substring(0, 50) + (msg.replyTo.text.length > 50 ? '...' : '');
-                            }
+                            let rText = msg.replyTo.type === 'audio' ? '🎤 Voice Message' : (msg.replyTo.type === 'gif' || (msg.replyTo.text && msg.replyTo.text.includes('.gif')) ? '🖼️ GIF' : msg.replyTo.text.substring(0, 50) + (msg.replyTo.text.length > 50 ? '...' : ''));
+                            
                             replyHtml = `
                                 <div class="quoted-msg">
                                     <div class="quoted-sender">${msg.replyTo.senderName}</div>
                                     ${rText}
-                                </div>`;
+                                </div>
+                            `;
                         }
                         
-                        // Parse Reactions
-                        let reactionsHtml = '';
-                        if(msg.reactions) { 
-                            const emojis = Object.values(msg.reactions); 
-                            if(emojis.length > 0) {
-                                reactionsHtml = `<div class="reactions-display">${emojis.join('')}</div>`; 
-                            }
-                        }
+                        let reactionsHtml = msg.reactions ? (Object.values(msg.reactions).length > 0 ? `<div class="reactions-display">${Object.values(msg.reactions).join('')}</div>` : '') : '';
+                        
+                        let parsedContent = msg.type === 'audio' 
+                            ? `<audio controls style="max-width: 210px; height: 35px; outline:none; border-radius: 20px;"><source src="${msg.text}" type="${msg.mimeType || 'audio/webm'}"></audio>` 
+                            : (msg.text.startsWith('http') && msg.text.includes('.gif') ? `<img src="${msg.text}" style="max-width:200px; border-radius:8px;">` : msg.text);
+                            
+                        let ticksHtml = isMe ? `<span class="msg-ticks ${(msg.seenBy ? Object.keys(msg.seenBy).length : 0) > 0 ? 'seen' : ''}">✓✓</span>` : '';
 
-                        // Parse Actual Content (Text, GIF, Audio)
-                        let parsedContent = msg.text;
-                        if (msg.type === 'audio') { 
-                            const audioMime = msg.mimeType || 'audio/webm'; 
-                            parsedContent = `<audio controls style="max-width: 210px; height: 35px; outline:none; border-radius: 20px;"><source src="${msg.text}" type="${audioMime}"></audio>`; 
-                        } else if (msg.text.startsWith('http') && msg.text.includes('.gif')) {
-                            parsedContent = `<img src="${msg.text}" style="max-width:200px; border-radius:8px;">`;
-                        }
-
-                        // Blue Ticks calculation
-                        let ticksHtml = ''; 
-                        if (isMe) { 
-                            const seenCount = msg.seenBy ? Object.keys(msg.seenBy).length : 0; 
-                            ticksHtml = `<span class="msg-ticks ${seenCount > 0 ? 'seen' : ''}">✓✓</span>`; 
-                        }
-
-                        // Final Wrapper Assembly
                         htmlContent += `
                             <div class="message-row ${isMe ? 'me' : 'other'}" data-msgid="${msgId}" data-sender="${msg.senderName}" data-text="${msg.text}" data-type="${msg.type || 'text'}">
                                 ${!isMe ? `<img src="${msg.senderImg || 'https://via.placeholder.com/100'}" class="msg-avatar">` : ''}
@@ -2708,7 +2688,6 @@
                     
                     box.innerHTML = htmlContent;
                     
-                    // Auto-scroll mechanics
                     setTimeout(() => { 
                         if (isFirstLoad) { 
                             box.scrollTop = box.scrollHeight; 
@@ -2724,13 +2703,13 @@
                 }
             });
 
-            // Typing Indicator Listener
             activeListeners['typing'] = onValue(ref(db, `typing/${room.id}`), snap => {
                 const indicator = document.getElementById('typing-indicator'); 
                 const typingText = document.getElementById('typing-text');
                 
                 if(snap.exists()) { 
                     let typingUsers = []; 
+                    
                     snap.forEach(child => { 
                         if(child.key !== currentUser.uid) {
                             typingUsers.push(child.val()); 
@@ -2741,11 +2720,11 @@
                         typingText.innerText = typingUsers.length === 1 ? `${typingUsers[0]} is typing...` : 'Multiple people are typing...'; 
                         indicator.classList.remove('hidden'); 
                         document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight; 
-                    } else {
+                    } else { 
                         indicator.classList.add('hidden'); 
                     }
-                } else {
-                    indicator.classList.add('hidden');
+                } else { 
+                    indicator.classList.add('hidden'); 
                 }
             });
             
@@ -2755,10 +2734,12 @@
         window.closeChatScreen = () => { 
             document.getElementById('chat-interface').classList.remove('active'); 
             
-            // Unsubscribe listeners to save memory
-            if(activeListeners['msg']) off(ref(db, `messages/${currentRoomId}`)); 
-            if(activeListeners['typing']) off(ref(db, `typing/${currentRoomId}`)); 
-            
+            if(activeListeners['msg']) {
+                off(ref(db, `messages/${currentRoomId}`)); 
+            }
+            if(activeListeners['typing']) {
+                off(ref(db, `typing/${currentRoomId}`)); 
+            }
             if(currentRoomId && currentUser) {
                 remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); 
             }
@@ -2767,11 +2748,12 @@
             cancelReply(); 
         };
 
-        // Input & Button handling
         window.handleTypingAndButtons = () => { 
             if(currentRoomId && currentUser) { 
                 set(ref(db, `typing/${currentRoomId}/${currentUser.uid}`), currentProfile.name || "User"); 
+                
                 clearTimeout(typingTimeout); 
+                
                 typingTimeout = setTimeout(() => { 
                     remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); 
                 }, 2000); 
@@ -2779,13 +2761,8 @@
             
             const inputVal = document.getElementById('msg-input').value.trim(); 
             
-            if(inputVal !== '') { 
-                document.getElementById('send-btn').classList.remove('hidden'); 
-                document.getElementById('mic-btn').classList.add('hidden'); 
-            } else { 
-                document.getElementById('send-btn').classList.add('hidden'); 
-                document.getElementById('mic-btn').classList.remove('hidden'); 
-            } 
+            document.getElementById('send-btn').classList[inputVal !== '' ? 'remove' : 'add']('hidden'); 
+            document.getElementById('mic-btn').classList[inputVal !== '' ? 'add' : 'remove']('hidden'); 
         };
 
         window.triggerSendMessage = async () => { 
@@ -2796,6 +2773,7 @@
                 input.value = ''; 
                 handleTypingAndButtons(); 
                 clearTimeout(typingTimeout); 
+                
                 remove(ref(db, `typing/${currentRoomId}/${currentUser.uid}`)); 
                 
                 try { 
@@ -2821,17 +2799,18 @@
             } 
         };
 
-
         // --- 12. CHAT ACTIONS: REACTIONS, REPLY & GIFS ---
         window.startLongPress = (e, msgId) => { 
             longPressTimer = setTimeout(() => { 
                 toggleReactionPicker(msgId); 
-                if(navigator.vibrate) navigator.vibrate(50); 
+                if(navigator.vibrate) {
+                    navigator.vibrate(50); 
+                }
             }, 400); 
         };
-
-        window.cancelLongPress = () => {
-            clearTimeout(longPressTimer);
+        
+        window.cancelLongPress = () => { 
+            clearTimeout(longPressTimer); 
         };
 
         function initSwipeToReply() { 
@@ -2841,11 +2820,14 @@
             
             chatBox.addEventListener('touchstart', e => { 
                 currentMsgRow = e.target.closest('.message-row'); 
-                if(currentMsgRow) startX = e.touches[0].clientX; 
+                if(currentMsgRow) {
+                    startX = e.touches[0].clientX; 
+                }
             }); 
             
             chatBox.addEventListener('touchmove', e => { 
                 if(!currentMsgRow) return; 
+                
                 let diff = e.touches[0].clientX - startX; 
                 if(diff > 0 && diff < 60) {
                     currentMsgRow.style.transform = `translateX(${diff}px)`; 
@@ -2854,11 +2836,13 @@
             
             chatBox.addEventListener('touchend', e => { 
                 if(!currentMsgRow) return; 
+                
                 let diff = e.changedTouches[0].clientX - startX; 
                 
                 if(diff > 40) {
                     setReply(currentMsgRow.dataset.msgid, currentMsgRow.dataset.sender, currentMsgRow.dataset.text, currentMsgRow.dataset.type); 
                 }
+                
                 currentMsgRow.style.transform = `translateX(0)`; 
                 currentMsgRow = null; 
             }); 
@@ -2868,13 +2852,7 @@
             replyingTo = { msgId, senderName, text, type }; 
             document.getElementById('reply-to-name').innerText = senderName; 
             
-            if(type === 'audio') {
-                document.getElementById('reply-to-text').innerText = "🎤 Voice Message"; 
-            } else if(type === 'gif' || text.includes('.gif')) {
-                document.getElementById('reply-to-text').innerText = "🖼️ GIF"; 
-            } else {
-                document.getElementById('reply-to-text').innerText = text; 
-            }
+            document.getElementById('reply-to-text').innerText = type === 'audio' ? "🎤 Voice Message" : (type === 'gif' || text.includes('.gif') ? "🖼️ GIF" : text); 
             
             document.getElementById('reply-preview-bar').classList.add('active'); 
             document.getElementById('msg-input').focus(); 
@@ -2896,7 +2874,9 @@
             
             window.closeReactionMenu = function(e) { 
                 if (e.target.closest('.reaction-picker')) return; 
+                
                 document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('active')); 
+                
                 document.removeEventListener('click', window.closeReactionMenu); 
                 document.removeEventListener('touchstart', window.closeReactionMenu); 
             }; 
@@ -2927,37 +2907,46 @@
             fetchGifs('trending'); 
         };
 
+        // --- UPDATED GIF FETCHING LOGIC WITH GIPHY FALLBACK ---
         window.fetchGifs = async (query) => { 
             const resultsContainer = document.getElementById('gif-results'); 
             
-            if(!query || query.trim() === '') query = 'trending'; 
+            if(!query || query.trim() === '') {
+                query = 'trending'; 
+            }
             
-            let url = `https://g.tenor.com/v1/search?q=${query}&key=LIVDSRZULELA&limit=12`; 
+            // Note: Tenor API sometimes throws CORS/Limit issues. 
+            // I'm using an alternative open GIPHY API key here for stability.
+            let url = `https://api.giphy.com/v1/gifs/search?api_key=p0B2N7XzR07k3VdXYB0E68jQ8b9zWq6s&q=${query}&limit=12&rating=g`; 
+            
             if(query === 'trending') {
-                url = `https://g.tenor.com/v1/trending?key=LIVDSRZULELA&limit=12`; 
+                url = `https://api.giphy.com/v1/gifs/trending?api_key=p0B2N7XzR07k3VdXYB0E68jQ8b9zWq6s&limit=12&rating=g`; 
             }
             
             try { 
                 const response = await fetch(url); 
                 const data = await response.json(); 
+                
                 resultsContainer.innerHTML = ''; 
                 
-                if(!data.results || data.results.length === 0) { 
-                    resultsContainer.innerHTML = `<p style="grid-column: span 2; text-align:center;">No GIFs found 😅</p>`; 
+                if(!data.data || data.data.length === 0) { 
+                    resultsContainer.innerHTML = `<p style="grid-column: span 2; text-align:center;">Search for GIFs</p>`; 
                     return; 
                 } 
                 
-                data.results.forEach(gif => { 
-                    const gifUrl = gif.media[0].tinygif.url; 
+                data.data.forEach(gif => { 
+                    const gifUrl = gif.images.fixed_height_small.url; 
                     resultsContainer.innerHTML += `<img src="${gifUrl}" class="gif-item" onclick="sendGif('${gifUrl}')">`; 
                 }); 
             } catch (error) { 
-                resultsContainer.innerHTML = `<p style="grid-column: span 2; text-align:center; color:red;">Check connection!</p>`; 
+                console.error(error);
+                resultsContainer.innerHTML = `<p style="grid-column: span 2; text-align:center; color:red;">Check connection or API Limits!</p>`; 
             } 
         };
 
         window.sendGif = async (url) => { 
             document.getElementById('gif-modal').classList.remove('active'); 
+            
             try { 
                 await push(ref(db, `messages/${currentRoomId}`), { 
                     text: url, 
@@ -2968,6 +2957,7 @@
                     timestamp: Date.now(), 
                     replyTo: replyingTo || null 
                 }); 
+                
                 cancelReply(); 
                 
                 setTimeout(() => { 
@@ -2978,7 +2968,6 @@
                 alert("Error: " + e.message); 
             } 
         };
-
 
         // --- 13. VOICE RECORDING ENGINE ---
         function formatTime(sec) { 
@@ -3005,12 +2994,8 @@
         window.startVoiceRecord = async () => { 
             try { 
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-                let audioMimeType = 'audio/webm'; 
+                let audioMimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm'; 
                 
-                if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                    audioMimeType = 'audio/mp4'; 
-                }
-
                 mediaRecorder = new MediaRecorder(stream, { mimeType: audioMimeType }); 
                 audioChunks = []; 
                 isRecording = true; 
@@ -3047,6 +3032,7 @@
                     const reader = new FileReader(); 
                     
                     reader.readAsDataURL(audioBlob); 
+                    
                     reader.onloadend = async () => { 
                         const base64Audio = reader.result; 
                         try { 
@@ -3086,7 +3072,6 @@
                 mediaRecorder.stop(); 
             } 
         };
-
 
         // --- 14. ADMIN ROOM SETTINGS ---
         window.openAdminModal = async () => { 
@@ -3157,13 +3142,16 @@
 
         function detachAll() { 
             off(ref(db, 'rooms')); 
-            if(currentUser) off(ref(db, `user_chats/${currentUser.uid}`)); 
+            if(currentUser) {
+                off(ref(db, `user_chats/${currentUser.uid}`)); 
+            }
         }
 
         // --- 15. WEBRTC CALLING ENGINE (FULL SETUP) ---
         window.toggleCallDropdown = () => { 
             const drop = document.getElementById('call-dropdown'); 
             drop.classList.toggle('active'); 
+            
             setTimeout(() => { 
                 document.addEventListener('click', () => drop.classList.remove('active'), {once:true}); 
             }, 100); 
@@ -3171,9 +3159,9 @@
 
         window.initiateCall = async (type) => { 
             if(!currentRoomId) return; 
+            
             activeCallType = type; 
             
-            // Send Message in Chat
             await push(ref(db, `messages/${currentRoomId}`), { 
                 text: "Started a call", 
                 type: 'call_invite', 
@@ -3183,7 +3171,6 @@
                 timestamp: Date.now() 
             }); 
             
-            // Set Call Status Node
             await set(ref(db, `calls/${currentRoomId}/status`), { 
                 isRinging: true, 
                 type: type, 
@@ -3199,7 +3186,10 @@
 
         window.answerCall = async () => { 
             document.getElementById('incoming-call-modal').classList.remove('active'); 
+            stopRingtone(); // Stop ringtone when answered
+            
             await update(ref(db, `calls/${currentRoomId}/status`), { isRinging: false }); 
+            
             openCallScreenUI(activeCallType); 
             await setupWebRTC(false); 
         };
@@ -3213,16 +3203,19 @@
         window.hangupCall = async () => { 
             await update(ref(db, `calls/${currentRoomId}/status`), { ended: true }); 
             
-            // Terminate connections
-            if(peerConnection) peerConnection.close(); 
-            if(localStream) localStream.getTracks().forEach(track => track.stop()); 
+            if(peerConnection) {
+                peerConnection.close(); 
+            }
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop()); 
+            }
             
             document.getElementById('active-call-screen').classList.remove('active'); 
+            stopRingtone();
             
             peerConnection = null; 
             localStream = null; 
             
-            // Cleanup DB
             setTimeout(async () => { 
                 await remove(ref(db, `calls/${currentRoomId}`)); 
             }, 2000); 
@@ -3246,6 +3239,7 @@
             
             peerConnection = new RTCPeerConnection(rtcServers); 
             remoteStream = new MediaStream(); 
+            
             document.getElementById('remoteVideo').srcObject = remoteStream; 
             
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream)); 
@@ -3269,24 +3263,30 @@
                 
                 onValue(ref(db, `calls/${currentRoomId}/answer`), snap => { 
                     const data = snap.val(); 
-                    if (!peerConnection.currentRemoteDescription && data) {
+                    if (!peerConnection.currentRemoteDescription && data) { 
                         peerConnection.setRemoteDescription(new RTCSessionDescription(data)); 
-                    }
+                    } 
                 }); 
                 
                 onChildAdded(ref(db, `calls/${currentRoomId}/calleeCandidates`), snap => { 
-                    if (snap.val()) peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); 
+                    if (snap.val()) {
+                        peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); 
+                    }
                 }); 
             } else { 
                 const offerSnap = await get(ref(db, `calls/${currentRoomId}/offer`)); 
+                
                 if (offerSnap.exists()) { 
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(offerSnap.val())); 
                     const answer = await peerConnection.createAnswer(); 
+                    
                     await peerConnection.setLocalDescription(answer); 
                     await set(ref(db, `calls/${currentRoomId}/answer`), { type: answer.type, sdp: answer.sdp }); 
                     
                     onChildAdded(ref(db, `calls/${currentRoomId}/callerCandidates`), snap => { 
-                        if (snap.val()) peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); 
+                        if (snap.val()) {
+                            peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); 
+                        }
                     }); 
                 } else { 
                     alert("Call ended."); 
@@ -3322,6 +3322,7 @@
         
         window.toggleCam = () => { 
             if(activeCallType === 'audio') return; 
+            
             isVideoMuted = !isVideoMuted; 
             localStream.getVideoTracks()[0].enabled = !isVideoMuted; 
             document.getElementById('call-cam-btn').innerText = isVideoMuted ? '🚫' : '📹'; 
