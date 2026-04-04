@@ -1860,6 +1860,17 @@
         </div>
     </div>
 
+    <div id="password-modal" class="modal-overlay">
+        <div class="modal-container">
+            <h3 id="password-modal-title" style="margin-bottom: 15px;">Enter Password</h3>
+            <input type="password" id="password-modal-input" class="chat-input" placeholder="Room Password" style="margin-bottom: 15px; border: 1px solid var(--border-color); width: 100%; box-sizing: border-box;">
+            <div style="display:flex; gap:10px; margin-top: 15px; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closePasswordModal()" style="width:auto;">Cancel</button>
+                <button class="btn" style="background:var(--accent); width:auto;" onclick="submitRoomPassword()">Join Room</button>
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
         // --- 1. FIREBASE INITIALIZATION ---
@@ -1893,6 +1904,8 @@
         let typingTimeout = null; 
         let longPressTimer;
         let currentReplyData = null; 
+        
+        let pendingJoinRoomData = null; // Used for password modal
 
         // Voice Recording State
         let mediaRecorder; 
@@ -2257,7 +2270,6 @@
         };
 
        // --- 9. ROOM CREATION & JOINING ---
-        // (Create room function remains the same)
         window.createRoom = async () => {
             const name = document.getElementById('new-room-name').value.trim();
             const icon = document.getElementById('new-room-icon').value.trim() || `https://ui-avatars.com/api/?name=${name}&background=random`;
@@ -2298,18 +2310,25 @@
             
             // --- PASSWORD CHECK LOGIC ---
             if(roomData.pass && roomData.pass.trim() !== "") {
-                // User public list la irundhu click panni irundha prompt ketkanum
                 if(isFromList) {
-                    pass = prompt(`🔒 "${roomData.name}" requires a password:`);
-                    if(pass === null) return; // User cancel pannita action stop aagidum
+                    // Show custom modal instead of native prompt
+                    pendingJoinRoomData = roomData;
+                    document.getElementById('password-modal-title').innerText = `🔒 Join "${roomData.name}"`;
+                    document.getElementById('password-modal-input').value = '';
+                    document.getElementById('password-modal').classList.add('active');
+                    return; // Wait for the modal input
                 }
                 
-                // Password thappa irundha ulla vida kudadhu
                 if(roomData.pass !== pass) {
                     return alert("Incorrect password! Cannot join room.");
                 }
             }
             
+            await finalizeRoomJoin(roomId, roomData);
+        };
+
+        // HELPER FUNCTION TO COMPLETE JOIN PROCESS
+        window.finalizeRoomJoin = async (roomId, roomData) => {
             await set(ref(db, `room_members/${roomId}/${currentUser.uid}`), { role: 'member' });
             await set(ref(db, `user_chats/${currentUser.uid}/${roomId}`), { joinedAt: Date.now() });
             
@@ -2319,6 +2338,28 @@
             document.getElementById('join-room-container').classList.remove('active');
             
             openChatScreen(roomData);
+        };
+
+        // MODAL ACTION: CLOSE
+        window.closePasswordModal = () => {
+            document.getElementById('password-modal').classList.remove('active');
+            pendingJoinRoomData = null;
+        };
+
+        // MODAL ACTION: SUBMIT PASSWORD
+        window.submitRoomPassword = () => {
+            if(!pendingJoinRoomData) return;
+            const enteredPass = document.getElementById('password-modal-input').value;
+
+            if(pendingJoinRoomData.pass !== enteredPass) {
+                alert("Incorrect password! Cannot join room.");
+                return;
+            }
+
+            // Valid pass
+            document.getElementById('password-modal').classList.remove('active');
+            finalizeRoomJoin(pendingJoinRoomData.id, pendingJoinRoomData);
+            pendingJoinRoomData = null;
         };
 
         // --- 10. DATA LISTENERS (Chats & Rooms) ---
@@ -2333,7 +2374,6 @@
                         const room = child.val(); 
                         if(room.type === 'public') { 
                             hasPublic = true; 
-                            // Inga joinRoom-ku (room.id, true) nu anuppurom
                             list.innerHTML += `
                                 <div class="list-item" onclick="joinRoom('${room.id}', true)">
                                     <img src="${room.icon}" class="avatar">
