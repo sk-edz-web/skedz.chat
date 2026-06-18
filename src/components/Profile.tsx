@@ -38,8 +38,23 @@ export const Profile: React.FC<ProfileProps> = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
+  const [cloudinaryCloudName, setCloudinaryCloudName] = useState<string>("");
+  const [cloudinaryUploadPreset, setCloudinaryUploadPreset] = useState<string>("");
+
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState<boolean>(false);
+
+  useEffect(() => {
+    setCloudinaryCloudName(localStorage.getItem('cloudinary_cloud_name') || "");
+    setCloudinaryUploadPreset(localStorage.getItem('cloudinary_upload_preset') || "");
+  }, []);
+
+  const handleSaveCloudinary = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('cloudinary_cloud_name', cloudinaryCloudName.trim());
+    localStorage.setItem('cloudinary_upload_preset', cloudinaryUploadPreset.trim());
+    alert("Cloudinary upload configurations saved successfully!");
+  };
 
   useEffect(() => {
     setName(currentProfile.name || "");
@@ -366,6 +381,52 @@ export const Profile: React.FC<ProfileProps> = ({
             className="w-full py-2.5 bg-neutral-900 border border-neutral-900 hover:bg-neutral-950 text-white text-xs font-semibold rounded-xl shadow-sm cursor-pointer transition-all"
           >
             {isSaving ? "Saving Profiles..." : "Save Profile Values"}
+          </motion.button>
+        </form>
+      </div>
+
+
+
+      {/* 4. Cloudinary Configuration Section */}
+      <div className="bg-white rounded-[28px] border border-neutral-200/50 shadow-sm p-6">
+        <h3 className="font-bold text-[#111] text-xs flex items-center gap-1.5 border-b border-neutral-100 pb-3 mb-4">
+          <ImageIcon className="w-4 h-4 text-emerald-500" /> Cloudinary Media Storage
+        </h3>
+        
+        <div className="mb-4 text-[10px] text-neutral-500 leading-relaxed bg-neutral-50 p-3.5 rounded-2xl border border-neutral-150">
+          Provide your Cloudinary client credentials if you wish to host files on Cloudinary. 
+          <strong> Note:</strong> If left empty, a seamless compression-optimized offline Base64 string fallback is automatically activated so image uploads work instantly!
+        </div>
+
+        <form onSubmit={handleSaveCloudinary} className="space-y-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-neutral-800">Cloud Name</label>
+            <input
+              type="text"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 placeholder-neutral-400 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-neutral-50/50"
+              value={cloudinaryCloudName}
+              onChange={(e) => setCloudinaryCloudName(e.target.value)}
+              placeholder="e.g. dxyz1234"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-neutral-800">Unsigned Upload Preset</label>
+            <input
+              type="text"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 placeholder-neutral-400 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-neutral-50/50"
+              value={cloudinaryUploadPreset}
+              onChange={(e) => setCloudinaryUploadPreset(e.target.value)}
+              placeholder="e.g. chat_unsigned_preset"
+            />
+          </div>
+
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            className="w-full py-2.5 bg-neutral-900 hover:bg-neutral-950 text-white text-xs font-semibold rounded-xl shadow-sm cursor-pointer transition-all"
+          >
+            Save Cloudinary Credentials
           </motion.button>
         </form>
       </div>
