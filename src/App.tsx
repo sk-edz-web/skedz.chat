@@ -1038,9 +1038,12 @@ export default function App() {
           >
             <div className="relative mb-6">
               <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping blur-sm" />
-              <div className="w-16 h-16 rounded-[22px] bg-black text-white flex items-center justify-center text-xl font-extrabold shadow-lg relative z-10">
-                SK
-              </div>
+              <img 
+                src="https://i.ibb.co/ZRnPFYQJ/chat.jpg" 
+                alt="SK Secure Chat Logo" 
+                className="w-16 h-16 rounded-[22px] object-cover border border-neutral-200/50 shadow-lg relative z-10 select-none" 
+                referrerPolicy="no-referrer"
+              />
             </div>
             <p className="text-xs text-neutral-400 font-extrabold uppercase tracking-widest animate-pulse mt-2">
               Syncing Secure Channels...
@@ -1057,9 +1060,12 @@ export default function App() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl" />
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl" />
 
-              <div className="w-12 h-12 rounded-[18px] bg-[#000000] text-white flex items-center justify-center text-sm font-black mx-auto mb-4 tracking-tight shadow">
-                SK
-              </div>
+              <img 
+                src="https://i.ibb.co/ZRnPFYQJ/chat.jpg" 
+                alt="SK Secure Chat Logo" 
+                className="w-12 h-12 rounded-[18px] object-cover mx-auto mb-4 tag-shadow border border-neutral-200 select-none" 
+                referrerPolicy="no-referrer"
+              />
 
               <h2 className="text-xl font-extrabold tracking-tight text-neutral-950 leading-tight">
                 {isSignupMode ? "Create Secure Account" : "SK Secure Chatting"}
@@ -1190,9 +1196,12 @@ export default function App() {
             {/* Header branding & tabs bar */}
             <div className="h-16 px-4 bg-white border-b border-neutral-200/30 flex items-center justify-between">
               <div className="flex items-center gap-2 font-black text-sm tracking-tight">
-                <div className="w-7 h-7 rounded-[9px] bg-black text-white flex items-center justify-center text-xs font-black">
-                  SK
-                </div>
+                <img 
+                  src="https://i.ibb.co/ZRnPFYQJ/chat.jpg" 
+                  alt="SK" 
+                  className="w-7 h-7 rounded-[9px] object-cover border border-neutral-200 select-none" 
+                  referrerPolicy="no-referrer"
+                />
                 SK Secure Chat
               </div>
 

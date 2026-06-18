@@ -1,6 +1,6 @@
 {
   "name": "SK Secure Chat",
-  "description": "A premium high-fidelity private messaging and calling application with secure group workspaces, direct dialpad calling, real-time voice notes, and WebRTC integration styled in a luxurious modern interface.",
+  "description": "SK Secure Chat is a premium high-fidelity private chat, secure chat, and sk private chat application with secure group workspaces, direct dialpad calling, real-time voice notes, and WebRTC integration styled in a luxurious modern interface.",
   "requestFramePermissions": [
     "camera",
     "microphone"
