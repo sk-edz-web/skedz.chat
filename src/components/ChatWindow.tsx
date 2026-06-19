@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   ArrowLeft, Phone, Video, Settings, Smile, Image as ImageIcon, 
-  Send, Trash2, Shield, X, Mic, CheckCheck, Plus, Loader, Mail, Link2 
+  Send, Trash2, Shield, X, Mic, CheckCheck, Plus, Loader, Mail, Link2,
+  Download
 } from "lucide-react";
 import { Room, Message, UserProfile, QuotedMessage } from "../types";
 import { db } from "../config/firebase";
@@ -131,6 +132,32 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     });
   };
 
+  const handleDownloadMedia = async (url: string, filename: string) => {
+    if (!url) return;
+    try {
+      // Dynamic cross-origin blob attachment initializer
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      // Fallback to seamless standard tab download activation anchor
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
+
   // Typing indicators
   const handleInputUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputText(e.target.value);
@@ -183,9 +210,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     setIsUploadingFile(true);
     try {
       const url = await uploadToCloudinary(file);
+      const isVideoFile = file.type.startsWith("video/");
       await push(ref(db, `messages/${room.id}`), {
         text: url,
-        type: "gif", // Treats image URLs as graphic nodes
+        type: isVideoFile ? "video" : "gif", // Mark video custom-types correctly
         senderId: currentUserId,
         senderName: currentProfile.name || "User",
         senderImg: currentProfile.img || "https://ui-avatars.com/api/?name=User",
@@ -578,79 +606,141 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   </span>
                 )}
 
-                {/* Message Interactive Bubble */}
-                <div
-                  onDoubleClick={() => setActiveReactionPickerMessageId(msg.id || `${index}`)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setActiveReactionPickerMessageId(msg.id || `${index}`);
-                  }}
-                  className={`p-3 rounded-2xl relative shadow-sm inline-block select-text max-w-full ${
-                    isMe
-                      ? "bg-neutral-900 border border-neutral-900 text-white rounded-br-sm"
-                      : "bg-white border border-neutral-250 text-[#111827] rounded-bl-sm"
-                  }`}
-                >
-                  {/* Quoting context */}
-                  {msg.replyTo && (
-                    <div
-                      className={`text-xs p-2 rounded-xl mb-2 italic border-l-2 leading-relaxed opacity-90 overflow-hidden line-clamp-2 max-w-[200px] select-none ${
-                        isMe
-                          ? "bg-white/10 border-white/40 text-neutral-100"
-                          : "bg-neutral-50 border-neutral-300 text-neutral-500"
-                      }`}
-                    >
-                      <strong className="block text-[10px] font-black uppercase not-italic">
-                        {msg.replyTo.senderName}
-                      </strong>
-                      {msg.replyTo.type === "audio" ? "🎤 Voice Card" : msg.replyTo.text}
-                    </div>
-                  )}
-
-                  {/* Rendering standard types */}
-                  {msg.type === "audio" ? (
-                    <AudioPlayer src={msg.text} isMe={isMe} />
-                  ) : msg.type === "gif" || msg.text.startsWith("http") && (msg.text.includes(".gif") || msg.text.includes("cloudinary.com")) ? (
-                    <img
-                      src={msg.text}
-                      alt="Media Attached"
-                      className="max-w-[200px] rounded-xl object-contain shadow bg-neutral-100"
-                    />
-                  ) : (
-                    <p className="text-xs font-medium leading-relaxed leading-normal whitespace-pre-wrap break-words pr-2">
-                      {msg.text}
-                    </p>
-                  )}
-
-                  {/* Bubble subdetails */}
-                  <div className="flex items-center justify-end gap-1 mt-1 text-[8px] font-bold tracking-wider uppercase opacity-80 select-none">
-                    <span className={isMe ? "text-neutral-300" : "text-neutral-400"}>
-                      {formattedTime}
+                {/* Message Interactive Bubble with Swipe/Drag to Reply */}
+                <div className="relative">
+                  {/* Pull-to-reply background indicator */}
+                  <div className={`absolute top-1/2 -translate-y-1/2 transition pointer-events-none opacity-0 group-hover:opacity-60 flex items-center ${
+                    isMe ? "-left-8" : "-right-8"
+                  }`}>
+                    <span className="text-xs bg-neutral-100/90 text-neutral-700 w-6 h-6 rounded-full flex items-center justify-center shadow-xs border border-neutral-200 animate-pulse">
+                      ↩
                     </span>
-                    {isMe && (
-                      <CheckCheck
-                        className={`w-3 h-3 ${
-                          (msg.seenBy ? Object.keys(msg.seenBy).length : 0) > 0
-                            ? "text-blue-400"
-                            : "text-neutral-400"
-                        }`}
-                      />
-                    )}
                   </div>
 
-                  {/* Display floating reaction counts */}
-                  {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                    <div className="absolute -bottom-2 right-2 bg-white/95 backdrop-blur border border-neutral-200 shadow-sm rounded-full py-0.5 px-2 flex items-center gap-0.5 text-[10px] select-none scale-90">
-                      {Object.values(msg.reactions).slice(0, 3).map((emoji, i) => (
-                        <span key={i}>{emoji}</span>
-                      ))}
-                      {Object.keys(msg.reactions).length > 1 && (
-                        <span className="text-[8px] font-black text-neutral-500 pl-0.5">
-                          {Object.keys(msg.reactions).length}
-                        </span>
+                  <motion.div
+                    drag="x"
+                    dragDirectionLock
+                    dragConstraints={{ left: isMe ? -120 : 0, right: isMe ? 0 : 120 }}
+                    dragElastic={{ left: isMe ? 0.5 : 0, right: isMe ? 0 : 0.5 }}
+                    dragSnapToOrigin={true}
+                    onDragEnd={(event, info) => {
+                      const threshold = 55;
+                      const isTriggered = isMe ? (info.offset.x < -threshold) : (info.offset.x > threshold);
+                      if (isTriggered) {
+                        onSetReplying({
+                          msgId: msg.id || `${index}`,
+                          senderName: msg.senderName,
+                          text: msg.type === "audio" ? "Voice Note" : msg.text,
+                          type: msg.type,
+                        });
+                        if (navigator.vibrate) {
+                          navigator.vibrate(35); // Premium haptic reply vibration
+                        }
+                      }
+                    }}
+                    onDoubleClick={() => setActiveReactionPickerMessageId(msg.id || `${index}`)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setActiveReactionPickerMessageId(msg.id || `${index}`);
+                    }}
+                    className={`p-3 rounded-2xl relative shadow-sm inline-block select-text max-w-full cursor-grab active:cursor-grabbing touch-pan-y ${
+                      isMe
+                        ? "bg-neutral-900 border border-neutral-900 text-white rounded-br-sm"
+                        : "bg-white border border-neutral-250 text-[#111827] rounded-bl-sm"
+                    }`}
+                  >
+                    {/* Quoting context */}
+                    {msg.replyTo && (
+                      <div
+                        className={`text-xs p-2 rounded-xl mb-2 italic border-l-2 leading-relaxed opacity-90 overflow-hidden line-clamp-2 max-w-[200px] select-none ${
+                          isMe
+                            ? "bg-white/10 border-white/40 text-neutral-100"
+                            : "bg-neutral-50 border-neutral-300 text-neutral-500"
+                        }`}
+                      >
+                        <strong className="block text-[10px] font-black uppercase not-italic">
+                          {msg.replyTo.senderName}
+                        </strong>
+                        {(msg.replyTo.type === "audio" || msg.replyTo.text?.includes("audio-note")) ? "🎤 Voice Card" : (msg.replyTo.type === "video" || msg.replyTo.text?.startsWith("data:video/") || msg.replyTo.text?.includes(".mp4")) ? "🎥 Video Card" : (msg.replyTo.type === "gif" || msg.replyTo.text?.startsWith("data:image/") || msg.replyTo.text?.includes("cloudinary.com")) ? "🖼️ Media Image" : msg.replyTo.text}
+                      </div>
+                    )}
+
+                    {/* Rendering standard types */}
+                    {msg.type === "audio" ? (
+                      <AudioPlayer src={msg.text} isMe={isMe} />
+                    ) : (msg.type === "video" || (typeof msg.text === "string" && (msg.text.startsWith("data:video/") || msg.text.includes(".mp4") || msg.text.includes(".mov") || msg.text.includes(".webm") || msg.text.includes(".avi")))) ? (
+                      <div className="relative group/media max-w-[240px] rounded-xl overflow-hidden bg-neutral-950 border border-neutral-900 shadow-sm flex flex-col mt-0.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadMedia(msg.text, `video_${msg.timestamp || Date.now()}.mp4`);
+                          }}
+                          className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black/90 text-white rounded-full transition z-20 cursor-pointer flex items-center justify-center shadow border border-neutral-800"
+                          title="Download Video"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                        <video
+                          src={msg.text}
+                          controls
+                          className="w-full max-h-[280px] rounded-xl object-contain bg-black"
+                        />
+                      </div>
+                    ) : (msg.type === "gif" || msg.type === "image" || (typeof msg.text === "string" && (msg.text.startsWith("data:image/") || msg.text.startsWith("http") && (msg.text.includes(".gif") || msg.text.includes("cloudinary.com") || msg.text.includes(".jpg") || msg.text.includes(".jpeg") || msg.text.includes(".png") || msg.text.includes(".webp") || msg.text.includes("/image"))))) ? (
+                      <div className="relative group/media max-w-[240px] rounded-xl overflow-hidden bg-neutral-50 border border-neutral-150 shadow-xs flex flex-col mt-0.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadMedia(msg.text, `image_${msg.timestamp || Date.now()}.jpg`);
+                          }}
+                          className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full transition z-20 cursor-pointer flex items-center justify-center shadow border border-white/20"
+                          title="Download Image"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                        <img
+                          src={msg.text}
+                          alt="Media Attached"
+                          className="w-full max-h-[280px] rounded-xl object-contain bg-neutral-100"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-xs font-medium leading-relaxed whitespace-pre-wrap break-words pr-2">
+                        {msg.text}
+                      </p>
+                    )}
+
+                    {/* Bubble subdetails */}
+                    <div className="flex items-center justify-end gap-1 mt-1.5 text-[8px] font-bold tracking-wider uppercase opacity-80 select-none">
+                      <span className={isMe ? "text-neutral-300" : "text-neutral-400"}>
+                        {formattedTime}
+                      </span>
+                      {isMe && (
+                        <CheckCheck
+                          className={`w-3 h-3 ${
+                            (msg.seenBy ? Object.keys(msg.seenBy).length : 0) > 0
+                              ? "text-blue-400"
+                              : "text-neutral-400"
+                          }`}
+                        />
                       )}
                     </div>
-                  )}
+
+                    {/* Display floating reaction counts */}
+                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                      <div className="absolute -bottom-2 right-2 bg-white/95 backdrop-blur border border-neutral-200 shadow-sm rounded-full py-0.5 px-2 flex items-center gap-0.5 text-[10px] select-none scale-90">
+                        {Object.values(msg.reactions).slice(0, 3).map((emoji, i) => (
+                          <span key={i}>{emoji}</span>
+                        ))}
+                        {Object.keys(msg.reactions).length > 1 && (
+                          <span className="text-[8px] font-black text-neutral-500 pl-0.5">
+                            {Object.keys(msg.reactions).length}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
                 </div>
 
                 {/* Micro hovering reply trigger */}
@@ -738,7 +828,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           className="hidden"
           onChange={handleFileChange}
         />
